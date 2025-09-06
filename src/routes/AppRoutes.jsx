@@ -9,7 +9,6 @@ import ResetPassword from "../pages/auth/ResetPassword";
 import Profile from "../pages/Profile";
 import Landing from "../pages/Landing";
 import Notifications from "../pages/Notifications";
-import CreatePlan from "../pages/CreatePlan";
 import GlowMode from "../pages/GlowMode";
 import Chat from "../pages/Chat";
 import ProtectedRoute from "../components/ProtectedRoute";
@@ -18,7 +17,6 @@ const AppRoutes = () => (
   <Routes>
     <Route path="/" element={<Landing />} />
     <Route path="/notifications" element={<Notifications />} />
-    <Route path="/create" element={<CreatePlan />} />
     <Route path="/glow" element={<GlowMode />} />
     <Route path="/chat" element={<Chat />} />
     <Route path="/about" element={<AboutUs />} />

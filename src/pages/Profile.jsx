@@ -2,9 +2,10 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { authAPI } from "../services/authService";
-import { FaCalendar, FaWalking, FaShoppingBag } from "react-icons/fa";
+import { FaCalendar, FaWalking, FaShoppingBag, FaEdit } from "react-icons/fa";
 import { FaClapperboard } from "react-icons/fa6";
 import LocationSelector from "./components/LocationSelector";
+import MyEditProfile from "./components/Profilecomponents/MyEditProfile";
 
 const interests = ["Movies", "Coffee", "Gym", "Walk"];
 const plans = [
@@ -26,11 +27,12 @@ const plans = [
 ];
 
 const Profile = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const navigate = useNavigate();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [location, setLocation] = useState("Current Location");
+  const [showEditProfile, setShowEditProfile] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -65,12 +67,21 @@ const Profile = () => {
     // await updateUserProfile({ location: newLocation });
   };
 
-  console.log("current ", currentUser);
+  const handleProfileUpdate = (updatedUser) => {
+    setCurrentUser(updatedUser);
+    updateUser(updatedUser);
+  };
 
   const nameFirstLetter = currentUser?.name?.charAt(0);
 
   return (
     <>
+      {showEditProfile && (
+        <MyEditProfile 
+          onClose={() => setShowEditProfile(false)}
+          onUpdate={handleProfileUpdate}
+        />
+      )}
       {
         <div className="min-h-screen bg-white">
           {/* Top Bar */}
@@ -155,7 +166,10 @@ const Profile = () => {
                 ))}
               </div>
               <div className="flex gap-3 p-1 mt-4 font-medium">
-                <button className="border border-orange-500 py-2 px-9 rounded-lg cursor-pointer">
+                <button 
+                  className="border border-orange-500 py-2 px-9 rounded-lg cursor-pointer hover:bg-orange-50 transition-colors"
+                  onClick={() => setShowEditProfile(true)}
+                >
                   Edit Profile
                 </button>
                 <button className="border border-orange-500 py-2 px-9 rounded-lg cursor-pointer">

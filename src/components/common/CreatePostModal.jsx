@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import hangoutService from '../../services/hangoutService';
+import { toast } from 'react-toastify';
 
 const CreatePostModal = ({ isOpen, onClose }) => {
   const modalRef = useRef(null);
@@ -55,7 +57,6 @@ const CreatePostModal = ({ isOpen, onClose }) => {
     time: ''
   });
 
-  const [showTimePicker, setShowTimePicker] = useState(false);
 
   const validateField = (name, value) => {
     let error = '';
@@ -126,19 +127,69 @@ const CreatePostModal = ({ isOpen, onClose }) => {
     return isValid;
   };
 
-  const handleSubmit = (e) => {
+  const formatToISODateTime = (timeString) => {
+    if (!timeString) return '';
+    
+    // Get current date in YYYY-MM-DD format
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    
+    // Combine with the provided time and add seconds and timezone
+    return `${year}-${month}-${day}T${timeString}:00Z`;
+  };
 
+  // Function to get coordinates from location name using OpenStreetMap Nominatim
+  const getCoordinatesFromAddress = async (address) => {
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`
+      );
+      const data = await response.json();
+      
+      if (data && data[0]) {
+        return {
+          lat: parseFloat(data[0].lat),
+          lon: parseFloat(data[0].lon)
+        };
+      }
+      throw new Error('Location not found');
+    } catch (error) {
+      console.error('Error geocoding address:', error);
+      throw new Error('Could not find coordinates for the provided location');
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     if (!validateForm()) {
       return;
     }
-
-    console.log('Form submitted:', formData);
-    // Here you would typically make an API call to save the data
-    // For example: await api.createPost(formData);
-
-    onClose();
+  
+    try {
+      // Get coordinates from location name
+      const coordinates = await getCoordinatesFromAddress(formData.location);
+      
+      // Format the time to ISO format with timezone
+      const formattedTime = formatToISODateTime(formData.time);
+      
+      // Transform the form data to match the required API format
+      const hangoutData = {
+        title: formData.plan,
+        location: `POINT(${coordinates.lon} ${coordinates.lat})`, // Format as POINT(longitude latitude)
+        start_time: formattedTime
+      };
+      
+      console.log("Hangout data being sent:", hangoutData);
+      const response = await hangoutService.createHangout(hangoutData);
+      toast.success('Hangout created successfully!');
+      onClose();
+    } catch (error) {
+      console.error('Error creating hangout:', error);
+      toast.error(error.response?.data?.message || 'Failed to create hangout');
+    }
   };
 
   // Handle Enter key press in form fields
@@ -149,24 +200,6 @@ const CreatePostModal = ({ isOpen, onClose }) => {
     }
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
-
-  const formatTime = (timeString) => {
-    if (!timeString) return '';
-    const [hours, minutes] = timeString.split(':');
-    const hour = parseInt(hours);
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    const displayHour = hour % 12 || 12;
-    return `${displayHour}:${minutes} ${ampm}`;
-  };
 
   if (!isOpen) return null;
 

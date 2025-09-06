@@ -88,7 +88,7 @@ export const authAPI = {
       setToken(response.token);
     }
     return response;
-    //   try {
+    //   try { 
     // } catch (error) {
     //   throw error;
     //   }
@@ -148,14 +148,15 @@ export const authAPI = {
 
 // User API methods
 export const userAPI = {
-  // Update user profile
   updateProfile: async (userData) => {
-    return await api.put('/users/profile', userData);
+    console.log("userdata : ",userData);
+    return await api.put('/api/user/me', userData);
     //   try {
     // } catch (error) {
     //   throw error;
     //   }
   },
+  // Update user profile
 
   // Get user by ID
   getUser: async (userId) => {
