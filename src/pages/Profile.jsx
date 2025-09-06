@@ -2,7 +2,9 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { authAPI } from "../services/authService";
-import { FaCalendar, FaWalking, FaShoppingBag, FaEdit } from "react-icons/fa";
+import { FaUser, FaCalendar, FaMapMarkerAlt, FaClock, FaEllipsisV, FaCheck, FaTimes, FaComment, FaHourglass, FaWalking, FaShoppingBag } from 'react-icons/fa';
+import hangoutService from '../services/hangoutService';
+import { toast } from 'react-toastify';
 import { FaClapperboard } from "react-icons/fa6";
 import LocationSelector from "./components/LocationSelector";
 import MyEditProfile from "./components/Profilecomponents/MyEditProfile";
@@ -31,6 +33,78 @@ const Profile = () => {
   const navigate = useNavigate();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [planRequests, setPlanRequests] = useState([
+    {
+      id: '1',
+      title: 'Coffee Meetup',
+      location: 'Starbucks, Connaught Place',
+      time: '2024-09-10T15:00:00Z',
+      requester: {
+        id: 'user2',
+        name: 'Alex Johnson',
+        avatar: '👨‍💼'
+      },
+      status: 'pending' // pending, approved, rejected
+    },
+    {
+      id: '2',
+      title: 'Study Session',
+      location: 'Central Library',
+      time: '2024-09-12T10:00:00Z',
+      requester: {
+        id: 'user3',
+        name: 'Sarah Williams',
+        avatar: '👩‍🎓'
+      },
+      status: 'pending'
+    }
+  ]);
+
+  const handleApproveRequest = async (requestId) => {
+    try {
+      setPlanRequests(prev => 
+        prev.map(req => 
+          req.id === requestId ? { ...req, status: 'approved' } : req
+        )
+      );
+      
+      // Here you would typically make an API call to update the request status
+      // await hangoutService.updateJoinRequest(hangoutId, requestId, 'approved');
+      
+      toast.success('Plan request approved!');
+    } catch (error) {
+      console.error('Error approving request:', error);
+      toast.error('Failed to approve request');
+      // Revert on error
+      setPlanRequests(prev => 
+        prev.map(req => 
+          req.id === requestId ? { ...req, status: 'pending' } : req
+        )
+      );
+    }
+  };
+
+  const handleRejectRequest = async (requestId) => {
+    try {
+      // Remove the rejected plan from the list
+      setPlanRequests(prev => prev.filter(req => req.id !== requestId));
+      
+      // Here you would typically make an API call to update the request status
+      // await hangoutService.updateJoinRequest(hangoutId, requestId, 'rejected');
+      
+      toast.info('Plan request rejected and removed');
+    } catch (error) {
+      console.error('Error rejecting request:', error);
+      toast.error('Failed to reject request');
+    }
+  };
+
+  const navigateToChat = (request) => {
+    // Here you would navigate to the chat with the requester
+    // navigate(`/chat/${request.requester.id}`);
+    toast.info(`Chat with ${request.requester.name} would open here`);
+  };
+
   const [location, setLocation] = useState("Current Location");
   const [showEditProfile, setShowEditProfile] = useState(false);
 
@@ -82,6 +156,7 @@ const Profile = () => {
           onUpdate={handleProfileUpdate}
         />
       )}
+
       {
         <div className="min-h-screen bg-white">
           {/* Top Bar */}
@@ -129,6 +204,7 @@ const Profile = () => {
                     </div>
                   </div>
                 </div>
+                  <button className="bg-red-500 text-white px-4 py-2 rounded-full cursor-pointer hover:bg-red-600 transition-colors duration-300 ease-in-out" onClick={handleLogout}>Logout</button>
               </div>
             </div>
           </div>
@@ -203,8 +279,94 @@ const Profile = () => {
                   </div>
                 ))}
               </div>
-            </div>
+            </div>  
           </div>
+
+          {/* Plan Requests Section */}
+          <div className="mt-10 px-4 sm:px-6">
+              <div className="w-full mb-6">
+                <div className="inline-flex items-center gap-3 pb-2 border-b-2 border-stone-800">
+                  <FaCalendar className="text-2xl sm:text-3xl text-stone-800" />
+                  <h1 className="text-2xl sm:text-3xl font-medium text-stone-800">Plan Requests</h1>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                {planRequests.length === 0 ? (
+                  <div className="text-center py-12 bg-stone-50 rounded-lg">
+                    <FaHourglass className="mx-auto text-4xl sm:text-5xl mb-3 text-stone-400" />
+                    <p className="text-stone-500 text-lg">No pending plan requests</p>
+                  </div>
+                ) : (
+                  planRequests.map((request) => (
+                    <div 
+                      key={request.id}
+                      className="flex flex-col sm:flex-row gap-4 p-4 sm:p-5 border border-stone-200 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow"
+                    >
+                      <div className="text-3xl sm:text-4xl bg-stone-100 rounded-full w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center flex-shrink-0">
+                        {request.requester.avatar}
+                      </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-lg sm:text-xl font-semibold text-stone-800 mb-1">{request.title}</h3>
+                        <p className="text-sm text-stone-600 mb-2">From: {request.requester.name}</p>
+                        
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-3 text-sm text-stone-600">
+                          <div className="flex items-center">
+                            <FaMapMarkerAlt className="mr-2 text-stone-400" />
+                            <span className="truncate">{request.location}</span>
+                          </div>
+                          <div className="flex items-center">
+                            <FaClock className="mr-2 text-stone-400" />
+                            <span>{new Date(request.time).toLocaleString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex flex-col sm:flex-col-reverse gap-2 sm:gap-3 mt-2 sm:mt-0">
+                        {request.status === 'pending' ? (
+                          <>
+                            <button
+                              onClick={() => handleApproveRequest(request.id)}
+                              className="flex items-center justify-center px-4 py-2 text-sm sm:text-base font-medium text-white bg-green-500 hover:bg-green-600 rounded-lg transition-colors"
+                            >
+                              <FaCheck className="mr-2" /> Approve
+                            </button>
+                            <button
+                              onClick={() => handleRejectRequest(request.id)}
+                              className="flex items-center justify-center px-4 py-2 text-sm sm:text-base font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors"
+                            >
+                              <FaTimes className="mr-2" /> Reject
+                            </button>
+                          </>
+                        ) : request.status === 'approved' ? (
+                          <div className="flex flex-col gap-3">
+                            <span className="px-3 py-1 text-sm font-medium text-green-800 bg-green-100 rounded-full text-center">
+                              Approved
+                            </span>
+                            <button
+                              onClick={() => navigateToChat(request)}
+                              className="flex items-center justify-center px-4 py-2 text-sm sm:text-base font-medium text-white bg-blue-500 hover:bg-blue-600 rounded-lg transition-colors"
+                            >
+                              <FaComment className="mr-2" /> Chat Now
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="px-3 py-1 text-sm font-medium text-red-800 bg-red-100 rounded-full text-center">
+                            Rejected
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
         </div>
       }
     </>

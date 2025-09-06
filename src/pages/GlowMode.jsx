@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 export default function GlowMode() {
   const [vibe, setVibe] = useState('Netflix & Chill');
   const [duration, setDuration] = useState('1 Hour');
-  const [discover, setDiscover] = useState('Public');
 
   return (
     <div className="max-w-md mx-auto px-4 py-6">

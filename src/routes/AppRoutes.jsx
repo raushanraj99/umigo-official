@@ -17,7 +17,11 @@ const AppRoutes = () => (
   <Routes>
     <Route path="/" element={<Landing />} />
     <Route path="/notifications" element={<Notifications />} />
-    <Route path="/glow" element={<GlowMode />} />
+    <Route path="/glow" element={
+     <ProtectedRoute>
+       <GlowMode />
+   </ProtectedRoute>
+    } />
     <Route path="/chat" element={<Chat />} />
     <Route path="/about" element={<AboutUs />} />
     <Route path="/features" element={<Features />} />
