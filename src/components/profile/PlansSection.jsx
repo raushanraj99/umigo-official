@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import hangoutService from '../../services/hangoutService';
-import { FaShoppingBag, FaWalking } from 'react-icons/fa';
+import { FaShoppingBag, FaWalking, FaTimes, FaCalendarAlt, FaMapMarkerAlt, FaUsers } from 'react-icons/fa';
 import { FaClapperboard } from 'react-icons/fa6';
+import { toast } from 'react-toastify';
 
 // Default plans data in case API fails
 const defaultPlans = [
@@ -32,6 +33,17 @@ const PlansSection = () => {
   const [plans, setPlans] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [editingPlan, setEditingPlan] = useState(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    address: '',
+    start_time: '',
+    end_time: '',
+    max_participants: 10,
+    status: 'active'
+  });
 
   useEffect(() => {
     let isMounted = true;
@@ -88,6 +100,56 @@ const PlansSection = () => {
       }
     };
   }, []);
+
+  // Handle edit button click
+  const handleEditClick = (plan) => {
+    setEditingPlan(plan);
+    setFormData({
+      title: plan.title || '',
+      description: plan.description || '',
+      address: plan.address || '',
+      start_time: plan.start_time ? new Date(plan.start_time).toISOString().slice(0, 16) : '',
+      end_time: plan.end_time ? new Date(plan.end_time).toISOString().slice(0, 16) : '',
+      max_participants: plan.max_participants || 10,
+      status: plan.status || 'active'
+    });
+  };
+
+  // Handle form input changes
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!editingPlan) return;
+
+    try {
+      setIsUpdating(true);
+      const updatedPlan = await hangoutService.updateHangout(editingPlan.id, formData);
+      
+      // Update the plans list with the updated plan
+      setPlans(prevPlans => 
+        prevPlans.map(plan => 
+          plan.id === editingPlan.id ? { ...plan, ...formData } : plan
+        )
+      );
+      
+      toast.success('Plan updated successfully!');
+      setEditingPlan(null);
+    } catch (error) {
+      console.error('Error updating plan:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to update plan';
+      toast.error(errorMessage);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   // Format time display
   const formatTimeDisplay = (startTime, endTime, address) => {
@@ -147,7 +209,6 @@ const PlansSection = () => {
       <div className="space-y-4">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">Your Plans</h2>
-          <div className="text-sm text-orange-500">+ Add Plan</div>
         </div>
         <div className="text-center py-8 bg-gray-50 rounded-lg animate-pulse">
           <div className="text-gray-500">Loading plans...</div>
@@ -160,12 +221,6 @@ const PlansSection = () => {
     <div className="space-y-4">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-bold">Your Plans</h2>
-        <button 
-          className="text-sm text-orange-500 hover:text-orange-600 font-medium transition-colors"
-          onClick={() => console.log('Create new plan')}
-        >
-          + Add Plan
-        </button>
       </div>
       
       {error && (
@@ -229,14 +284,162 @@ const PlansSection = () => {
                   </div>
                 )}
               </div>
-              <button 
-                className="ml-4 border border-orange-500 text-orange-500 hover:bg-orange-50 py-2 px-4 rounded-lg text-sm font-medium whitespace-nowrap transition-colors"
-                onClick={() => console.log('View plan details:', plan.id)}
+              <button
+                className="ml-4 border border-orange-500 text-orange-500 hover:bg-orange-50 py-2 px-4 rounded-lg text-sm font-medium whitespace-nowrap transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={() => handleEditClick(plan)}
+                disabled={isUpdating}
               >
-                View Details
+                {isUpdating && editingPlan?.id === plan.id ? 'Updating...' : 'Update'}
               </button>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Edit Plan Modal */}
+      {editingPlan && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl w-full max-w-md">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold">Update Plan</h2>
+                <button 
+                  onClick={() => setEditingPlan(null)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  disabled={isUpdating}
+                >
+                  <FaTimes className="w-5 h-5" />
+                </button>
+              </div>
+          
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                  <input
+                    type="text"
+                    name="title"
+                    value={formData.title}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    required
+                  />
+                </div>
+            
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                  <textarea
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    rows="3"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  />
+                </div>
+            
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
+                    <div className="relative">
+                      <input
+                        type="datetime-local"
+                        name="start_time"
+                        value={formData.start_time}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        required
+                      />
+                      <FaCalendarAlt className="absolute right-3 top-3 text-gray-400" />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">End Time</label>
+                    <div className="relative">
+                      <input
+                        type="datetime-local"
+                        name="end_time"
+                        value={formData.end_time}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      />
+                      <FaCalendarAlt className="absolute right-3 top-3 text-gray-400" />
+                    </div>
+                  </div>
+                </div>
+            
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      name="address"
+                      value={formData.address}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      placeholder="Enter location"
+                    />
+                    <FaMapMarkerAlt className="absolute left-3 top-3 text-gray-400" />
+                  </div>
+                </div>
+            
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Max Participants</label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      name="max_participants"
+                      min="1"
+                      max="100"
+                      value={formData.max_participants}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    />
+                    <FaUsers className="absolute left-3 top-3 text-gray-400" />
+                  </div>
+                </div>
+            
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                  <select
+                    name="status"
+                    value={formData.status}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  >
+                    <option value="active">Active</option>
+                    <option value="cancelled">Cancelled</option>
+                    <option value="completed">Completed</option>
+                  </select>
+                </div>
+            
+                <div className="flex justify-end space-x-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setEditingPlan(null)}
+                    className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                    disabled={isUpdating}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 text-white bg-orange-500 rounded-lg hover:bg-orange-600 transition-colors flex items-center disabled:opacity-50"
+                    disabled={isUpdating}
+                  >
+                    {isUpdating ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Updating...
+                      </>
+                    ) : 'Update Plan'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
       )}
     </div>

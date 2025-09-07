@@ -57,12 +57,11 @@ const Profile = () => {
     try {
       setIsLoadingProfile(true);
       setProfileError(null);
-      
-      console.log("Fetching user profile...");
+    
       const userInfo = await authAPI.getProfile();
       
       if (isMounted) {
-        console.log("User profile response:", userInfo);
+        // console.log("User profile response:", userInfo);
         // The authAPI.getProfile() now returns response.user directly
         setCurrentUser(userInfo || null);
       }
@@ -86,6 +85,7 @@ const Profile = () => {
 
   useEffect(() => {
     fetchUser();
+    console.log("fetch user : ",fetchUser);
   }, [fetchUser]);
 
   const handleApproveRequest = async (requestId) => {

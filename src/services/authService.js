@@ -13,7 +13,7 @@ const api = axios.create({
 const TOKEN_KEY = 'jwtToken';
 
 export const setToken = (token) => {
-  console.log("token ", token)
+  console.log("Setting token:", token)
   if (token) {
     localStorage.setItem(TOKEN_KEY, token);
   } else {
@@ -75,6 +75,7 @@ api.interceptors.response.use(
       status: error.response?.status,
       message: errorMessage,
       originalError: error,
+      response: error.response // Include original response for detailed error handling
     });
   }
 );
@@ -143,7 +144,18 @@ export const authAPI = {
   getProfile: async () => {
     try {
       const response = await api.get('/api/user/me');
-      return response.user; // Return only the user object
+      console.log('getProfile API response:', response);
+      
+      // Handle different possible response structures
+      if (response.user) {
+        return response.user; // Return user object directly
+      } else if (response.data?.user) {
+        return response.data.user;
+      } else if (response.data) {
+        return response.data;
+      } else {
+        return response; // Return entire response if structure is unexpected
+      }
     } catch (error) {
       console.error('Error fetching user profile:', error);
       throw error;
@@ -179,12 +191,23 @@ export const userAPI = {
    * @param {string} [userData.name] - Updated name
    * @param {string} [userData.bio] - Updated bio
    * @param {string} [userData.phone_no] - Updated phone number
+   * @param {string} [userData.image_url] - Updated profile image URL
    * @returns {Promise<Object>} Update result
    */
   updateProfile: async (userData) => {
     try {
+      console.log('Updating profile with data:', userData);
       const response = await api.put('/api/user/update', userData);
-      return response;
+      console.log('Profile update API response:', response);
+      
+      // Handle different possible response structures
+      if (response.user) {
+        return { user: response.user };
+      } else if (response.data?.user) {
+        return { user: response.data.user };
+      } else {
+        return response;
+      }
     } catch (error) {
       console.error('Error updating profile:', error);
       throw error;
@@ -199,7 +222,7 @@ export const userAPI = {
   getUser: async (userId) => {
     try {
       const response = await api.get(`/api/users/${userId}`);
-      return response.user;
+      return response.user || response;
     } catch (error) {
       console.error(`Error fetching user ${userId}:`, error);
       throw error;
@@ -241,48 +264,28 @@ export const eventsAPI = {
   // Get all events
   getEvents: async (params = {}) => {
     return await api.get('/events', { params });
-    //   try {
-    // } catch (error) {
-    //     throw error;
-    //   }
   },
 
   // Get single event
   getEvent: async (eventId) => {
     return await api.get(`/events/${eventId}`);
-    //   try {
-    // } catch (error) {
-    //     throw error;
-    //   }
   },
 
   // Create new event
   createEvent: async (eventData) => {
     return await api.post('/events', eventData);
-    //   try {
-    // } catch (error) {
-    //     throw error;
-    //   }
   },
 
   // Update event
   updateEvent: async (eventId, eventData) => {
     return await api.put(`/events/${eventId}`, eventData);
-    // try {
-    // } catch (error) {
-    //   throw error;
-    // }
   },
 
   // Delete event
   deleteEvent: async (eventId) => {
     return await api.delete(`/events/${eventId}`);
-    //   try {
-    // } catch (error) {
-    //     throw error;
-    //   }
   },
 };
 
 // Export the configured axios instance for direct use if needed
-export default api; 
+export default api;
