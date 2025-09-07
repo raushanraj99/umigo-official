@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create Axios instance with base URL from environment variables
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -81,33 +81,51 @@ api.interceptors.response.use(
 
 // Authentication API methods
 export const authAPI = {
-  // Login user
+  /**
+   * Login user
+   * @param {Object} credentials - User credentials
+   * @param {string} credentials.email - User's email
+   * @param {string} credentials.password - User's password
+   * @returns {Promise<Object>} Response data with token and user info
+   */
   login: async (credentials) => {
-    const response = await api.post('/auth/login', credentials);
-    if (response.token) {
-      setToken(response.token);
+    try {
+      const response = await api.post('/auth/login', credentials);
+      if (response.token) {
+        setToken(response.token);
+      }
+      return response;
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
     }
-    return response;
-    //   try { 
-    // } catch (error) {
-    //   throw error;
-    //   }
   },
 
-  // Register user
+  /**
+   * Register a new user
+   * @param {Object} userData - User registration data
+   * @param {string} userData.email - User's email
+   * @param {string} userData.name - User's name
+   * @param {string} userData.password - User's password
+   * @returns {Promise<Object>} Response data with token and user info
+   */
   register: async (userData) => {
-    const response = await api.post('/auth/register', userData);
-    if (response.token) {
-      setToken(response.token);
+    try {
+      const response = await api.post('/auth/register', userData);
+      if (response.token) {
+        setToken(response.token);
+      }
+      return response;
+    } catch (error) {
+      console.error('Registration error:', error);
+      throw error;
     }
-    return response;
-    // try {
-    // } catch (error) {
-    //   throw error;
-    // }
   },
 
-  // Logout user
+  /**
+   * Logout user
+   * @returns {Promise<void>}
+   */
   logout: async () => {
     try {
       await api.post('/auth/logout');
@@ -118,53 +136,103 @@ export const authAPI = {
     }
   },
 
-  // Get current user profile
+  /**
+   * Get current user profile
+   * @returns {Promise<Object>} User profile data
+   */
   getProfile: async () => {
-    const token = getToken();
-    return await api.get("/api/user/me", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    // try {
-    // } catch (error) {
-    //   throw error;
-    // }
+    try {
+      const response = await api.get('/api/user/me');
+      return response.user; // Return only the user object
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      throw error;
+    }
   },
 
-  // Refresh token
+  /**
+   * Refresh authentication token
+   * @returns {Promise<Object>} New token data
+   */
   refreshToken: async () => {
-    const response = await api.post('/auth/refresh');
-    if (response.token) {
-      setToken(response.token);
+    try {
+      const response = await api.post('/auth/refresh');
+      if (response.token) {
+        setToken(response.token);
+      }
+      return response;
+    } catch (error) {
+      console.error('Token refresh error:', error);
+      removeToken();
+      throw error;
     }
-    return response;
-    //   try {
-    // } catch (error) {
-    //     throw error;
-    //   }
   },
 };
 
-// User API methods
+/**
+ * User API methods
+ */
 export const userAPI = {
+  /**
+   * Update current user profile
+   * @param {Object} userData - Updated user data
+   * @param {string} [userData.name] - Updated name
+   * @param {string} [userData.bio] - Updated bio
+   * @param {string} [userData.phone_no] - Updated phone number
+   * @returns {Promise<Object>} Update result
+   */
   updateProfile: async (userData) => {
-    console.log("userdata : ",userData);
-    return await api.put('/api/user/me', userData);
-    //   try {
-    // } catch (error) {
-    //   throw error;
-    //   }
+    try {
+      const response = await api.put('/api/user/update', userData);
+      return response;
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      throw error;
+    }
   },
-  // Update user profile
 
-  // Get user by ID
+  /**
+   * Get user by ID
+   * @param {string} userId - User ID to fetch
+   * @returns {Promise<Object>} User data
+   */
   getUser: async (userId) => {
-    return await api.get(`/users/${userId}`);
-    //   try {
-    // } catch (error) {
-    //     throw error;
-    //   }
+    try {
+      const response = await api.get(`/api/users/${userId}`);
+      return response.user;
+    } catch (error) {
+      console.error(`Error fetching user ${userId}:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get users with glow mode enabled
+   * @returns {Promise<Array>} List of users with glow mode enabled
+   */
+  getGlowUsers: async () => {
+    try {
+      const response = await api.get('/api/user/glow');
+      return response.users || [];
+    } catch (error) {
+      console.error('Error fetching glow users:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Update user's glow mode status
+   * @param {boolean} glowMode - Whether to enable or disable glow mode
+   * @returns {Promise<Object>} Update result
+   */
+  updateGlowMode: async (glowMode) => {
+    try {
+      const response = await api.put('/api/user/glow', { glow_mode: glowMode });
+      return response;
+    } catch (error) {
+      console.error('Error updating glow mode:', error);
+      throw error;
+    }
   },
 };
 
