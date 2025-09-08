@@ -29,7 +29,7 @@ const defaultPlans = [
   },
 ];
 
-const PlansSection = () => {
+const PlansSection = ({ User }) => {
   const [plans, setPlans] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -58,11 +58,9 @@ const PlansSection = () => {
         timeoutId = setTimeout(async () => {
           if (!isMounted) return;
 
-          const response = await hangoutService.getHangouts({
-            limit: 10,
-          });
+          const response = await hangoutService.getUserHostedHangouts(User.user_id);
           
-          console.log("Plans API response:", response);
+          console.log("Plans API response:", response)
           
           if (isMounted) {
             // Handle the response structure properly

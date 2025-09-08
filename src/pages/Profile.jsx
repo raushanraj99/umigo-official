@@ -309,7 +309,7 @@ const Profile = () => {
           </div>
           
           <div className="flex-1 max-w-2xl">
-            <PlanSection />
+            <PlanSection User={currentUser}  />
           </div>  
         </div>
 

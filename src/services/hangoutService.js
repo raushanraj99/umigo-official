@@ -285,7 +285,7 @@ const hangoutService = {
       }
 
       const response = await api.get(`/api/hangouts/user/${userId}/hosted`);
-      return response.data;
+      return response;
     } catch (error) {
       console.error('Error fetching hosted hangouts:', error);
       throw error.response?.data || error;
