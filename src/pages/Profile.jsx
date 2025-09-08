@@ -85,7 +85,6 @@ const Profile = () => {
 
   useEffect(() => {
     fetchUser();
-    console.log("fetch user : ",fetchUser);
   }, [fetchUser]);
 
   const handleApproveRequest = async (requestId) => {

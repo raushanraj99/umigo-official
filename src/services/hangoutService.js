@@ -179,8 +179,16 @@ const hangoutService = {
       if (!hangoutId) {
         throw new Error('Hangout ID is required');
       }
+      
+      const newData = {
+        title: updateData.title,
+        description: updateData.description,
+        status: updateData.status,
+        max_participants: updateData.max_participants
+      };
+   
+      const response = await api.put(`/api/hangouts/${hangoutId}`, newData);
 
-      const response = await api.put(`/api/hangouts/${hangoutId}`, updateData);
       return response.data;
     } catch (error) {
       console.error('Error updating hangout:', error);

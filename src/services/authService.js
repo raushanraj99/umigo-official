@@ -144,7 +144,7 @@ export const authAPI = {
   getProfile: async () => {
     try {
       const response = await api.get('/api/user/me');
-      console.log('getProfile API response:', response);
+  
       
       // Handle different possible response structures
       if (response.user) {

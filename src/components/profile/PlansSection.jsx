@@ -53,7 +53,6 @@ const PlansSection = ({ User }) => {
     let timeoutId;
     const fetchPlans = async () => {
       try {
-        console.log("Fetching plans...");
         setError(null); // Clear previous errors
 
         // Add a small delay to prevent race conditions with other API calls
@@ -165,7 +164,7 @@ const PlansSection = ({ User }) => {
     try {
       setIsUpdating(true);
       const updatedPlan = await hangoutService.updateHangout(editingPlan.id, formData);
-      
+      console.log("update hangout : ",updatedPlan);
       // Update the plans list with the updated plan
       setPlans(prevPlans => 
         prevPlans.map(plan => 
