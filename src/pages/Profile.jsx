@@ -152,9 +152,9 @@ const Profile = () => {
     // await updateUserProfile({ location: newLocation });
   };
 
-  const handleProfileUpdate = (updatedUser) => {
-    setCurrentUser(updatedUser);
-    updateUser(updatedUser);
+  const handleProfileUpdate = () => {
+    setCurrentUser(currentUser);
+    updateUser(currentUser);
     // Optionally refresh the profile data
     fetchUser();
   };
