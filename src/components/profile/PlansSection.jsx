@@ -3,33 +3,35 @@ import hangoutService from '../../services/hangoutService';
 import { FaShoppingBag, FaWalking, FaTimes, FaCalendarAlt, FaMapMarkerAlt, FaUsers } from 'react-icons/fa';
 import { FaClapperboard } from 'react-icons/fa6';
 import { toast } from 'react-toastify';
+// import { useAuth } from '../../context/AuthContext';
 
 // Default plans data in case API fails
-const defaultPlans = [
-  {
-    id: 1,
-    title: "Evening Walk",
-    address: "6:00 PM - Gandhi Maidan",
-    start_time: new Date().toISOString(),
-    img: <FaWalking className="text-2xl" />,
-  },
-  {
-    id: 2,
-    title: "Saiyaara",
-    address: "Friday - 9:00 Cinepolis",
-    start_time: new Date().toISOString(),
-    img: <FaClapperboard className="text-2xl" />,
-  },
-  {
-    id: 3,
-    title: "Winter Shopping",
-    address: "Sunday - 4:00 PM - City Centre",
-    start_time: new Date().toISOString(),
-    img: <FaShoppingBag className="text-2xl" />,
-  },
-];
+// const defaultPlans = [
+//   {
+//     id: 1,
+//     title: "Evening Walk",
+//     address: "6:00 PM - Gandhi Maidan",
+//     start_time: new Date().toISOString(),
+//     img: <FaWalking className="text-2xl" />,
+//   },
+//   {
+//     id: 2,
+//     title: "Saiyaara",
+//     address: "Friday - 9:00 Cinepolis",
+//     start_time: new Date().toISOString(),
+//     img: <FaClapperboard className="text-2xl" />,
+//   },
+//   {
+//     id: 3,
+//     title: "Winter Shopping",
+//     address: "Sunday - 4:00 PM - City Centre",
+//     start_time: new Date().toISOString(),
+//     img: <FaShoppingBag className="text-2xl" />,
+//   },
+// ];
 
-const PlansSection = () => {
+const PlansSection = (userid) => {
+  // const { user } = useAuth();
   const [plans, setPlans] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -44,11 +46,10 @@ const PlansSection = () => {
     max_participants: 10,
     status: 'active'
   });
-
+  
   useEffect(() => {
     let isMounted = true;
     let timeoutId;
-
     const fetchPlans = async () => {
       try {
         console.log("Fetching plans...");
@@ -57,22 +58,15 @@ const PlansSection = () => {
         // Add a small delay to prevent race conditions with other API calls
         timeoutId = setTimeout(async () => {
           if (!isMounted) return;
-
-          const response = await hangoutService.getHangouts({
-            limit: 10,
-          });
-          
+          const response = await hangoutService.getUserHostedHangouts(userid.user);
           console.log("Plans API response:", response);
           
           if (isMounted) {
             // Handle the response structure properly
             const hangouts = response?.hangouts || [];
-            if (hangouts.length > 0) {
+            
               setPlans(hangouts);
-            } else {
-              console.log("No hangouts found, using default plans");
-              setPlans(defaultPlans);
-            }
+            
           }
         }, 500); // 500ms delay to prevent API conflicts
 
@@ -81,8 +75,7 @@ const PlansSection = () => {
         if (isMounted) {
           const errorMessage = error.response?.data?.message || error.message || 'Failed to load plans';
           setError(`Error: ${errorMessage}. Using default plans.`);
-          console.log("Using default plans due to error");
-          setPlans(defaultPlans);
+          
         }
       } finally {
         if (isMounted) {
