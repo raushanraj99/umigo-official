@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import hangoutService from '../../services/hangoutService';
-import { FaShoppingBag, FaWalking, FaTimes, FaCalendarAlt, FaMapMarkerAlt, FaUsers } from 'react-icons/fa';
+import { FaShoppingBag, FaWalking, FaTimes, FaCalendarAlt, FaMapMarkerAlt, FaUsers, FaTrash } from 'react-icons/fa';
 import { FaClapperboard } from 'react-icons/fa6';
 import { toast } from 'react-toastify';
-// import { useAuth } from '../../context/AuthContext';
+import { confirmAlert } from 'react-confirm-alert';
+import 'react-confirm-alert/src/react-confirm-alert.css';
 
 // Default plans data in case API fails
 // const defaultPlans = [
@@ -36,6 +37,7 @@ const PlansSection = ({ User }) => {
   const [error, setError] = useState(null);
   const [editingPlan, setEditingPlan] = useState(null);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -116,6 +118,43 @@ const PlansSection = ({ User }) => {
       ...prev,
       [name]: value
     }));
+  };
+
+  // Handle delete plan
+  const handleDeletePlan = async (planId) => {
+    try {
+      confirmAlert({
+        title: 'Delete Plan',
+        message: 'Are you sure you want to delete this plan? This action cannot be undone.',
+        buttons: [
+          {
+            label: 'Yes, delete it',
+            onClick: async () => {
+              try {
+                setIsDeleting(true);
+                await hangoutService.deleteHangout(planId);
+                
+                // Remove the deleted plan from the list
+                setPlans(prevPlans => prevPlans.filter(plan => plan.id !== planId));
+                toast.success('Plan deleted successfully!');
+              } catch (error) {
+                console.error('Error deleting plan:', error);
+                const errorMessage = error.response?.data?.message || error.message || 'Failed to delete plan';
+                toast.error(errorMessage);
+              } finally {
+                setIsDeleting(false);
+              }
+            }
+          },
+          {
+            label: 'Cancel',
+            onClick: () => {}
+          }
+        ]
+      });
+    } catch (error) {
+      console.error('Error in delete confirmation:', error);
+    }
   };
 
   // Handle form submission
@@ -278,13 +317,23 @@ const PlansSection = ({ User }) => {
                   </div>
                 )}
               </div>
-              <button
-                className="ml-4 border border-orange-500 text-orange-500 hover:bg-orange-50 py-2 px-4 rounded-lg text-sm font-medium whitespace-nowrap transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                onClick={() => handleEditClick(plan)}
-                disabled={isUpdating}
-              >
-                {isUpdating && editingPlan?.id === plan.id ? 'Updating...' : 'Update'}
-              </button>
+              <div className="flex gap-2">
+                <button
+                  className="border border-orange-500 text-orange-500 hover:bg-orange-50 py-2 px-4 rounded-lg text-sm font-medium whitespace-nowrap transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={() => handleEditClick(plan)}
+                  disabled={isUpdating}
+                >
+                  {isUpdating && editingPlan?.id === plan.id ? 'Updating...' : 'Update'}
+                </button>
+                <button
+                  className="border border-red-500 text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={() => handleDeletePlan(plan.id)}
+                  disabled={isDeleting}
+                  title="Delete plan"
+                >
+                  <FaTrash className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           ))}
         </div>
