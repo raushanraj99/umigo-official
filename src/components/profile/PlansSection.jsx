@@ -30,8 +30,7 @@ import { toast } from 'react-toastify';
 //   },
 // ];
 
-const PlansSection = (userid) => {
-  // const { user } = useAuth();
+const PlansSection = ({ User }) => {
   const [plans, setPlans] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -58,8 +57,10 @@ const PlansSection = (userid) => {
         // Add a small delay to prevent race conditions with other API calls
         timeoutId = setTimeout(async () => {
           if (!isMounted) return;
-          const response = await hangoutService.getUserHostedHangouts(userid.user);
-          console.log("Plans API response:", response);
+
+          const response = await hangoutService.getUserHostedHangouts(User.user_id);
+          
+          console.log("Plans API response:", response)
           
           if (isMounted) {
             // Handle the response structure properly
