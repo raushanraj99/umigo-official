@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
 import { userAPI } from '../../services/authService';
+import { IoArrowBack } from 'react-icons/io5';
 
 const MyEditProfile = ({ onClose, onUpdate, currentUser }) => {
   const { user } = useAuth();
@@ -131,7 +132,7 @@ const MyEditProfile = ({ onClose, onUpdate, currentUser }) => {
 
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black/40 backdrop-blur-xs bg-opacity-50 flex items-center justify-center z-50 p-4"
       onClick={handleBackdropClick}
     >
       <div 
@@ -140,15 +141,20 @@ const MyEditProfile = ({ onClose, onUpdate, currentUser }) => {
       >
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Edit Profile</h2>
+            <div 
+            className='cursor-pointer p-1 rounded-full hover:bg-orange-500 text-black hover:text-white text-2xl font-bold transition-all'
+            onClick={onClose}>
+              <IoArrowBack/>
+            </div>
+            <h2 className="text-lg font-bold text-gray-900">Edit Profile</h2>
             <button 
-              onClick={onClose}
               className="text-gray-400 hover:text-gray-600 transition-colors"
               disabled={isLoading}
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {/* <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              </svg> */}
+              <div className='w-8 h-8'/>
             </button>
           </div>
           
@@ -246,14 +252,14 @@ const MyEditProfile = ({ onClose, onUpdate, currentUser }) => {
               <button
                 type="button"
                 onClick={onClose}
-                className="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+                className="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 cursor-pointer"
                 disabled={isLoading}
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-6 py-2 text-white bg-[#ff5500] rounded-lg hover:bg-[#e64d00] transition-colors flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-2 text-white bg-[#ff5500] rounded-lg hover:bg-[#e64d00] transition-colors flex items-center disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 disabled={isLoading || !formData.name.trim()}
               >
                 {isLoading ? (
