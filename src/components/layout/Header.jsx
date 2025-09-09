@@ -49,23 +49,15 @@ export default function Header() {
     }
   }, [location])
 
-  const handleGlowModeToggle = () => {
-    if (isAuthenticated) {
-      setIsGlowModeModalOpen(true);
-    } else {
-      // Redirect to login page with a return URL
+  const handleGlowModeToggle = async () => {
+    if (!isAuthenticated) {
       navigate('/login', { state: { from: location.pathname } });
+      return;
     }
+    await toggleGlowMode();
   };
 
-  useEffect(() => {
-    const saved = localStorage.getItem('glowMode');
-    if (saved !== null) {
-      const glowMode = JSON.parse(saved);
-      document.documentElement.classList.toggle('glow-mode', glowMode);
-    }
-  }, []);
-
+  // Update document class when glow mode changes
   useEffect(() => {
     document.documentElement.classList.toggle('glow-mode', glowEnabled);
   }, [glowEnabled]);
@@ -83,11 +75,13 @@ export default function Header() {
     }
   };
 
-  const handleGlowModeSave = (glowData) => {
-    console.log('GlowMode settings saved:', glowData);
-    // Enable glow mode after successful submission
-    setGlowMode(true);
-    setIsGlowModeModalOpen(false);
+  const handleGlowModeSave = async () => {
+    try {
+      await setGlowMode(true);
+      setIsGlowModeModalOpen(false);
+    } catch (error) {
+      console.error('Failed to enable glow mode:', error);
+    }
   };
 
   const isActiveRoute = (itemTo) => {

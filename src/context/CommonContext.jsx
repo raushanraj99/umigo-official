@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { userAPI, authAPI } from '../services/authService';
 
 const CommonContext = createContext();
 
@@ -7,28 +8,71 @@ export function CommonProvider({ children }) {
   const [showSearch, setShowSearch] = useState(false);
   // Glow mode state
   const [glowEnabled, setGlowEnabled] = useState(false);
-  const [glowBtnVisible, setGlowBtnVisible] = useState(false);
+  const [glowBtnVisible, setGlowBtnVisible] = useState(true);
 
-  // Initialize glow mode from localStorage
+  // Initialize glow mode by checking the glow endpoint
   useEffect(() => {
-    const saved = localStorage.getItem('glowMode');
-    if (saved !== null) setGlowEnabled(JSON.parse(saved));
+    const initGlowMode = async () => {
+      try {
+        // Try to get glow mode status
+        const response = await userAPI.getGlowMode();
+        // If we get a response, glow mode is enabled
+        setGlowEnabled(true);
+      } catch (error) {
+        // If the API returns an error, assume glow mode is disabled
+        // This handles the case where the endpoint returns 404 when glow mode is off
+        if (error.response?.status !== 404) {
+          console.error('Error checking glow mode:', error);
+        }
+        setGlowEnabled(false);
+      }
+    };
+    
+    initGlowMode();
   }, []);
 
-  // Save glow mode to localStorage when it changes
-  useEffect(() => {
-    localStorage.setItem('glowMode', JSON.stringify(glowEnabled));
-    window.dispatchEvent(new CustomEvent('glowModeChange', { detail: glowEnabled }));
-  }, [glowEnabled]);
+  // Toggle glow mode
+  const toggleGlowMode = async () => {
+    try {
+      const newValue = !glowEnabled;
+      if (newValue) {
+        // Enable glow mode
+        await userAPI.updateGlowMode(true);
+      } else {
+        // Disable glow mode
+        await userAPI.disableGlowMode();
+      }
+      setGlowEnabled(newValue);
+      return true;
+    } catch (error) {
+      console.error('Error toggling glow mode:', error);
+      return false;
+    }
+  };
+
+  // Set glow mode to a specific value
+  const setGlowMode = async (value) => {
+    if (value === glowEnabled) return true;
+    try {
+      if (value) {
+        // Enable glow mode
+        await userAPI.updateGlowMode(true);
+      } else {
+        // Disable glow mode
+        await userAPI.disableGlowMode();
+      }
+      setGlowEnabled(value);
+      return true;
+    } catch (error) {
+      console.error('Error setting glow mode:', error);
+      return false;
+    }
+  };
 
   // Search handlers
   const toggleSearch = () => setShowSearch(prev => !prev);
   const openSearch = () => setShowSearch(true);
   const closeSearch = () => setShowSearch(false);
-
-  // Glow mode handlers
-  const toggleGlowMode = () => setGlowEnabled(prev => !prev);
-  const setGlowMode = (value) => setGlowEnabled(value);
   const setGlowButtonVisibility = (isVisible) => setGlowBtnVisible(isVisible);
 
   const value = {

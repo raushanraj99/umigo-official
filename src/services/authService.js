@@ -251,6 +251,7 @@ export const userAPI = {
   updateGlowMode: async (glowMode) => {
     try {
       const response = await api.put('/api/user/glow', { glow_mode: glowMode });
+      console.log("update glow mode api response", response);
       return response;
     } catch (error) {
       console.error('Error updating glow mode:', error);
