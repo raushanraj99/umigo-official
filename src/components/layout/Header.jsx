@@ -146,55 +146,64 @@ export default function Header() {
               </NavLink>
             )}  */}
 
-            <button
+            {/* <button
               className='text-2xl cursor-pointer text-gray-600 hover:text-[#FF5500] transition-colors'
               onClick={toggleSearch}
               aria-label="Search"
             >
               <IoSearch />
-            </button>
+            </button> */}
 
 
             {/* Glow switch for home screen*/}
             {
               isGlowVisible ?
-                <div className={['flex gap-2 items-center border p-2 rounded-2xl transition-all duration-300 ', glowEnabled? "border-[#ff5500] text-[#ff5500]" : "border-gray-500 text-gray-500"].join(' ')}>
-                  <div>
-                    GlowMode
-                  </div>
-                  <div
-                    role="switch"
-                    aria-checked={glowEnabled}
-                    aria-label="Enable glow mode"
-                    tabIndex={0}
-                    onClick={() => {
-                      if (glowEnabled) {
-                        toggleGlowMode();
-                      } else {
-                        handleGlowModeToggle();
-                      }
-                    }}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
+                <div className='flex items-center gap-5'>
+                  <button
+                    className='text-2xl cursor-pointer text-gray-600 hover:text-[#FF5500] transition-colors'
+                    onClick={toggleSearch}
+                    aria-label="Search"
+                  >
+                    <IoSearch />
+                  </button>
+                  <div className={['flex gap-2 items-center border p-2 rounded-2xl transition-all duration-300 ', glowEnabled ? "border-[#ff5500] text-[#ff5500]" : "border-gray-500 text-gray-500"].join(' ')}>
+                    <div className='text-sm'>
+                      GlowMode
+                    </div>
+                    <div
+                      role="switch"
+                      aria-checked={glowEnabled}
+                      aria-label="Enable glow mode"
+                      tabIndex={0}
+                      onClick={() => {
                         if (glowEnabled) {
                           toggleGlowMode();
                         } else {
                           handleGlowModeToggle();
                         }
-                      }
-                    }}
-                    className={[
-                      'relative h-6 w-14 rounded-full transition-colors cursor-pointer shrink-0 flex items-center px-1',
-                      glowEnabled ? 'bg-[#ff5500]' : 'bg-gray-200'
-                    ].join(' ')}
-                  >
-                    <span
+                      }}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          if (glowEnabled) {
+                            toggleGlowMode();
+                          } else {
+                            handleGlowModeToggle();
+                          }
+                        }
+                      }}
                       className={[
-                        'h-4 w-4 rounded-full bg-white shadow-sm transition-transform',
-                        glowEnabled ? 'translate-x-8' : 'translate-x-0'
+                        'relative h-6 w-12 rounded-full transition-colors cursor-pointer shrink-0 flex items-center px-1',
+                        glowEnabled ? 'bg-[#ff5500]' : 'bg-gray-200'
                       ].join(' ')}
-                    />
+                    >
+                      <span
+                        className={[
+                          'h-4 w-4 rounded-full bg-white shadow-sm transition-transform',
+                          glowEnabled ? 'translate-x-8' : 'translate-x-0'
+                        ].join(' ')}
+                      />
+                    </div>
                   </div>
                 </div>
                 :
@@ -232,7 +241,7 @@ export default function Header() {
       />
 
       {/* Glow Mode Modal */}
-       
+
       <GlowModeModal
         isOpen={isGlowModeModalOpen}
         onClose={() => setIsGlowModeModalOpen(false)}
