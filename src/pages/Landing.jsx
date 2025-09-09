@@ -156,7 +156,7 @@ const samplePlans = [
 function Landing() {
   const ITEMS_PER_PAGE = 9;
   const [query, setQuery] = useState('');
-  const [activeTab, setActiveTab] = useState('plans');
+  const [activeTab, setActiveTab] = useState('Plans'); // Make sure it's capitalized to match TabSwitcher
   const { glowEnabled, setGlowMode, showSearch } = useCommon();
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -173,15 +173,20 @@ function Landing() {
     const handleGlowModeChange = (e) => {
       const newGlowState = e.detail;
       setGlowMode(newGlowState);
-      // Always switch tab when glow mode changes
-      setActiveTab(newGlowState ? 'Spotlight' : 'Plans');
+      // Switch to Spotlight only if glow mode is enabled and we're not already on Spotlight
+      if (newGlowState && activeTab !== 'Spotlight') {
+        setActiveTab('Spotlight');
+      } else if (!newGlowState && activeTab === 'Spotlight') {
+        // If glow mode is turned off and we're on Spotlight, switch to Plans
+        setActiveTab('Plans');
+      }
     };
 
     window.addEventListener('glowModeChange', handleGlowModeChange);
     return () => {
       window.removeEventListener('glowModeChange', handleGlowModeChange);
     };
-  }, [setGlowMode]);
+  }, [setGlowMode, activeTab]);
 
   useEffect(() => {
     // Start transition when tab changes
@@ -305,7 +310,7 @@ function Landing() {
               className="w-full"
             >
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                {!glowEnabled && activeTab === 'Spotlight' ? (
+                {activeTab === 'Spotlight' && !glowEnabled ? (
                   <div className="col-span-3 text-center py-12">
                     <p className="text-lg text-gray-600 mb-4">Enable Glow Mode to view Spotlight</p>
                     <p className="text-sm text-gray-500">Click the Glow Mode button in the header to see who's nearby</p>

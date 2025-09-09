@@ -48,11 +48,14 @@ const Login = () => {
     setIsLoading(true);
     try {
       const response = await login({
-        email: formData.email.trim(),
+        email: formData.email,
         password: formData.password,
       });
+      
+      // Redirect to the original page or home
+      const from = location.state?.from || "/";
       console.log("Login successful:", response);
-      navigate("/profile");
+      navigate(from);
     } catch (error) {
       console.error("Login error:", error);
       setApiError(error.message || "Login failed. Please check your credentials and try again.");

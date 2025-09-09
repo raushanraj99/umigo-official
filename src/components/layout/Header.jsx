@@ -49,6 +49,15 @@ export default function Header() {
     }
   }, [location])
 
+  const handleGlowModeToggle = () => {
+    if (isAuthenticated) {
+      setIsGlowModeModalOpen(true);
+    } else {
+      // Redirect to login page with a return URL
+      navigate('/login', { state: { from: location.pathname } });
+    }
+  };
+
   useEffect(() => {
     const saved = localStorage.getItem('glowMode');
     if (saved !== null) {
@@ -165,19 +174,19 @@ export default function Header() {
                     aria-label="Enable glow mode"
                     tabIndex={0}
                     onClick={() => {
-                      if (!glowEnabled) {
-                        setIsGlowModeModalOpen(true);
-                      } else {
+                      if (glowEnabled) {
                         toggleGlowMode();
+                      } else {
+                        handleGlowModeToggle();
                       }
                     }}
                     onKeyDown={e => {
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
-                        if (!glowEnabled) {
-                          setIsGlowModeModalOpen(true);
-                        } else {
+                        if (glowEnabled) {
                           toggleGlowMode();
+                        } else {
+                          handleGlowModeToggle();
                         }
                       }
                     }}
@@ -229,6 +238,7 @@ export default function Header() {
       />
 
       {/* Glow Mode Modal */}
+       
       <GlowModeModal
         isOpen={isGlowModeModalOpen}
         onClose={() => setIsGlowModeModalOpen(false)}
