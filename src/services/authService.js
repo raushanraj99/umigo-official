@@ -145,7 +145,7 @@ export const authAPI = {
     try {
       const response = await api.get('/api/user/me');
   
-      
+       
       // Handle different possible response structures
       if (response.user) {
         return response.user; // Return user object directly

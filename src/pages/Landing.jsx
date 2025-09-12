@@ -9,6 +9,8 @@ import SpotlightDetailCard from '../components/common/SpotlightDetailCard';
 import { toast } from 'react-toastify';
 import Footer from '../components/layout/Footer';
 import InfiniteScroll from 'react-infinite-scroll-component';
+import {useHangout} from '../context/HangoutContext';
+
 
 
 const sampleUsers = [
@@ -31,127 +33,127 @@ const sampleUsers = [
   { name: 'Anika', time: '3:45 PM', location: 'Phoenix Palladium', avatarUrl: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=400&auto=format&fit=crop' }
 ];
 
-const samplePlans = [
-  {
-    name: 'Rahul Verma',
-    subtitle: 'Weekend Trek',
-    time: '6:00 AM Tomorrow',
-    location: 'Lohagad Fort',
-    bannerImage: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1200&auto=format&fit=crop',
-    avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200&auto=format&fit=crop'
-  },
-  {
-    name: 'Priya Patel',
-    subtitle: 'Brunch Meetup',
-    time: '11:00 AM Tomorrow',
-    location: 'The Bombay Canteen',
-    bannerImage: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1200&auto=format&fit=crop',
-    avatarUrl: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?q=80&w=200&auto=format&fit=crop'
-  },
-  {
-    name: 'Aryan Khanna',
-    subtitle: 'Cricket Match',
-    time: '4:00 PM Tomorrow',
-    location: 'Cross Maidan',
-    bannerImage: 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?q=80&w=1200&auto=format&fit=crop',
-    avatarUrl: 'https://images.unsplash.com/photo-1566492031773-4f4e44671857?q=80&w=200&auto=format&fit=crop'
-  },
-  {
-    name: 'Neha Gupta',
-    subtitle: 'Art Exhibition',
-    time: '3:00 PM Today',
-    location: 'Jehangir Art Gallery',
-    bannerImage: 'https://images.unsplash.com/photo-1536922246289-88c42f957773?q=80&w=1200&auto=format&fit=crop',
-    avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=200&auto=format&fit=crop'
-  },
-  {
-    name: 'Vikram Joshi',
-    subtitle: 'Tech Meetup',
-    time: '6:30 PM Today',
-    location: 'WeWork Galaxy',
-    bannerImage: 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?q=80&w=1200&auto=format&fit=crop',
-    avatarUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=400&auto=format&fit=crop'
-  },
-  {
-    name: 'Ananya Reddy',
-    subtitle: 'Yoga Session',
-    time: '7:00 AM Tomorrow',
-    location: 'Hanging Gardens',
-    bannerImage: 'https://images.unsplash.com/photo-1545205597-3d9d02c29597?q=80&w=1200&auto=format&fit=crop',
-    avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=200&auto=format&fit=crop'
-  },
-  {
-    name: 'Karan Malhotra',
-    subtitle: 'Standup Comedy',
-    time: '8:00 PM Today',
-    location: 'The Habitat',
-    bannerImage: 'https://images.unsplash.com/photo-1541194578297-9c8eaf0d832a?q=80&w=1200&auto=format&fit=crop',
-    avatarUrl: 'https://images.unsplash.com/photo-1542345812-d98b5cd6cf98?q=80&w=200&auto=format&fit=crop'
-  },
-  {
-    name: 'Meera Iyer',
-    subtitle: 'Book Reading',
-    time: '5:00 PM Tomorrow',
-    location: 'Kitab Khana',
-    bannerImage: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=1200&auto=format&fit=crop',
-    avatarUrl: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?q=80&w=200&auto=format&fit=crop'
-  },
-  {
-    name: 'Arjun Kapoor',
-    subtitle: 'Gaming Tournament',
-    time: '2:00 PM Tomorrow',
-    location: 'Smaaash, Lower Parel',
-    bannerImage: 'https://images.unsplash.com/photo-1493711662062-fa541adb3fc8?q=80&w=1200&auto=format&fit=crop',
-    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop'
-  },
-  {
-    name: 'Zoya Khan',
-    subtitle: 'Beach Cleanup',
-    time: '8:00 AM Tomorrow',
-    location: 'Juhu Beach',
-    bannerImage: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1200&auto=format&fit=crop',
-    avatarUrl: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=200&auto=format&fit=crop'
-  }, {
-    name: 'Riya Mehta',
-    subtitle: 'Karaoke Night',
-    time: '9:00 PM Today',
-    location: 'Hard Rock Cafe, Andheri',
-    bannerImage: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a5d4?q=80&w=1200&auto=format&fit=crop',
-    avatarUrl: 'https://images.unsplash.com/photo-1524502397800-2eeaad7c3fe5?q=80&w=200&auto=format&fit=crop'
-  },
-  {
-    name: 'Aditya Rao',
-    subtitle: 'Pool Party',
-    time: '12:00 PM Tomorrow',
-    location: 'Club Aquaria, Bandra',
-    bannerImage: 'https://images.unsplash.com/photo-1530549387789-4c1017266635?q=80&w=1200&auto=format&fit=crop',
-    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop'
-  },
-  {
-    name: 'Nandini Desai',
-    subtitle: 'Coffee & Conversations',
-    time: '4:30 PM Today',
-    location: 'Blue Tokai, Colaba',
-    bannerImage: 'https://images.unsplash.com/photo-1445116572660-236099ec97a0?q=80&w=1200&auto=format&fit=crop',
-    avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200&auto=format&fit=crop'
-  },
-  {
-    name: 'Rohan Seth',
-    subtitle: 'Basketball Match',
-    time: '6:00 PM Tomorrow',
-    location: 'St. Xavier\'s College Court',
-    bannerImage: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?q=80&w=1200&auto=format&fit=crop',
-    avatarUrl: 'https://images.unsplash.com/photo-1568602471122-7832951cc4c5?q=80&w=200&auto=format&fit=crop'
-  },
-  {
-    name: 'Ishita Kapoor',
-    subtitle: 'Flea Market Shopping',
-    time: '10:00 AM Tomorrow',
-    location: 'Colaba Causeway',
-    bannerImage: 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?q=80&w=1200&auto=format&fit=crop',
-    avatarUrl: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?q=80&w=200&auto=format&fit=crop'
-  }
-];
+// const samplePlans = [
+//   {
+//     name: 'Rahul Verma',
+//     subtitle: 'Weekend Trek',
+//     time: '6:00 AM Tomorrow',
+//     location: 'Lohagad Fort',
+//     bannerImage: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1200&auto=format&fit=crop',
+//     avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200&auto=format&fit=crop'
+//   },
+//   {
+//     name: 'Priya Patel',
+//     subtitle: 'Brunch Meetup',
+//     time: '11:00 AM Tomorrow',
+//     location: 'The Bombay Canteen',
+//     bannerImage: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1200&auto=format&fit=crop',
+//     avatarUrl: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?q=80&w=200&auto=format&fit=crop'
+//   },
+//   {
+//     name: 'Aryan Khanna',
+//     subtitle: 'Cricket Match',
+//     time: '4:00 PM Tomorrow',
+//     location: 'Cross Maidan',
+//     bannerImage: 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?q=80&w=1200&auto=format&fit=crop',
+//     avatarUrl: 'https://images.unsplash.com/photo-1566492031773-4f4e44671857?q=80&w=200&auto=format&fit=crop'
+//   },
+//   {
+//     name: 'Neha Gupta',
+//     subtitle: 'Art Exhibition',
+//     time: '3:00 PM Today',
+//     location: 'Jehangir Art Gallery',
+//     bannerImage: 'https://images.unsplash.com/photo-1536922246289-88c42f957773?q=80&w=1200&auto=format&fit=crop',
+//     avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=200&auto=format&fit=crop'
+//   },
+//   {
+//     name: 'Vikram Joshi',
+//     subtitle: 'Tech Meetup',
+//     time: '6:30 PM Today',
+//     location: 'WeWork Galaxy',
+//     bannerImage: 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?q=80&w=1200&auto=format&fit=crop',
+//     avatarUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=400&auto=format&fit=crop'
+//   },
+//   {
+//     name: 'Ananya Reddy',
+//     subtitle: 'Yoga Session',
+//     time: '7:00 AM Tomorrow',
+//     location: 'Hanging Gardens',
+//     bannerImage: 'https://images.unsplash.com/photo-1545205597-3d9d02c29597?q=80&w=1200&auto=format&fit=crop',
+//     avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=200&auto=format&fit=crop'
+//   },
+//   {
+//     name: 'Karan Malhotra',
+//     subtitle: 'Standup Comedy',
+//     time: '8:00 PM Today',
+//     location: 'The Habitat',
+//     bannerImage: 'https://images.unsplash.com/photo-1541194578297-9c8eaf0d832a?q=80&w=1200&auto=format&fit=crop',
+//     avatarUrl: 'https://images.unsplash.com/photo-1542345812-d98b5cd6cf98?q=80&w=200&auto=format&fit=crop'
+//   },
+//   {
+//     name: 'Meera Iyer',
+//     subtitle: 'Book Reading',
+//     time: '5:00 PM Tomorrow',
+//     location: 'Kitab Khana',
+//     bannerImage: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=1200&auto=format&fit=crop',
+//     avatarUrl: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?q=80&w=200&auto=format&fit=crop'
+//   },
+//   {
+//     name: 'Arjun Kapoor',
+//     subtitle: 'Gaming Tournament',
+//     time: '2:00 PM Tomorrow',
+//     location: 'Smaaash, Lower Parel',
+//     bannerImage: 'https://images.unsplash.com/photo-1493711662062-fa541adb3fc8?q=80&w=1200&auto=format&fit=crop',
+//     avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop'
+//   },
+//   {
+//     name: 'Zoya Khan',
+//     subtitle: 'Beach Cleanup',
+//     time: '8:00 AM Tomorrow',
+//     location: 'Juhu Beach',
+//     bannerImage: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1200&auto=format&fit=crop',
+//     avatarUrl: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=200&auto=format&fit=crop'
+//   }, {
+//     name: 'Riya Mehta',
+//     subtitle: 'Karaoke Night',
+//     time: '9:00 PM Today',
+//     location: 'Hard Rock Cafe, Andheri',
+//     bannerImage: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a5d4?q=80&w=1200&auto=format&fit=crop',
+//     avatarUrl: 'https://images.unsplash.com/photo-1524502397800-2eeaad7c3fe5?q=80&w=200&auto=format&fit=crop'
+//   },
+//   {
+//     name: 'Aditya Rao',
+//     subtitle: 'Pool Party',
+//     time: '12:00 PM Tomorrow',
+//     location: 'Club Aquaria, Bandra',
+//     bannerImage: 'https://images.unsplash.com/photo-1530549387789-4c1017266635?q=80&w=1200&auto=format&fit=crop',
+//     avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop'
+//   },
+//   {
+//     name: 'Nandini Desai',
+//     subtitle: 'Coffee & Conversations',
+//     time: '4:30 PM Today',
+//     location: 'Blue Tokai, Colaba',
+//     bannerImage: 'https://images.unsplash.com/photo-1445116572660-236099ec97a0?q=80&w=1200&auto=format&fit=crop',
+//     avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200&auto=format&fit=crop'
+//   },
+//   {
+//     name: 'Rohan Seth',
+//     subtitle: 'Basketball Match',
+//     time: '6:00 PM Tomorrow',
+//     location: 'St. Xavier\'s College Court',
+//     bannerImage: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?q=80&w=1200&auto=format&fit=crop',
+//     avatarUrl: 'https://images.unsplash.com/photo-1568602471122-7832951cc4c5?q=80&w=200&auto=format&fit=crop'
+//   },
+//   {
+//     name: 'Ishita Kapoor',
+//     subtitle: 'Flea Market Shopping',
+//     time: '10:00 AM Tomorrow',
+//     location: 'Colaba Causeway',
+//     bannerImage: 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?q=80&w=1200&auto=format&fit=crop',
+//     avatarUrl: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?q=80&w=200&auto=format&fit=crop'
+//   }
+// ];
 
 function Landing() {
   const ITEMS_PER_PAGE = 9;
@@ -162,11 +164,57 @@ function Landing() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [itemsToShow, setItemsToShow] = useState(ITEMS_PER_PAGE);
+  const { getHangouts, createHangout } = useHangout();
+  const [samplePlans, setSamplePlans] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [joinedPlans, setJoinedPlans] = useState({});
+  const [approachPeople, setApproachPeople] = useState({});
+  
+  // Handle joining a plan
+  const handleJoin = useCallback((planId) => {
+    setJoinedPlans(prev => ({
+      ...prev,
+      [planId]: true
+    }));
+    toast.success('Join request sent!');
+  }, []);
   
   // Set initial tab
   useEffect(() => {
-    // Any tab initialization logic can go here
+    const fetchHangouts = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = await getHangouts({ status: 'active' });
+        
+        // Format the data to match the expected structure for PlanCard
+        const formattedPlans = response.hangouts.map(plan => ({
+          ...plan,
+          id: plan._id,
+          name: plan.creator?.name || 'Anonymous',
+          subtitle: plan.title || 'No title',
+          time: plan.time ? new Date(plan.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Time not set',
+          location: plan.location || 'Location not specified',
+          bannerImage: plan.imageUrl || 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1200&auto=format&fit=crop',
+          avatarUrl: plan.creator?.profileImage || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200&auto=format&fit=crop'
+        }));
+        
+        setSamplePlans(formattedPlans);
+      } catch (err) {
+        console.error('Error fetching hangouts:', err);
+        setError(err.response?.data?.message || 'Failed to load hangouts');
+        toast.error('Failed to load hangouts');
+        // Fallback to empty array instead of undefined
+        setSamplePlans([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+  
+    fetchHangouts();
   }, []);
+  
 
   // Handle glow mode changes and update tab accordingly
   useEffect(() => {
@@ -207,18 +255,21 @@ function Landing() {
   );
 
   // Filter plans by name
-  const filteredPlans = React.useMemo(() =>
-    query.trim() === ''
+  const filteredPlans = React.useMemo(() => {
+    // console.log('Sample plans:', samplePlans);    
+    const result = query.trim() === ''
       ? samplePlans
-      : samplePlans.filter(p => p.name.toLowerCase().includes(query.toLowerCase())),
-    [query]
-  );
+      : samplePlans.filter(p => p.name.toLowerCase().includes(query.toLowerCase()));
+
+    return result;
+  }, [query, samplePlans]);
 
   // Get current items
-  const currentPlans = useMemo(() =>
-    filteredPlans.slice(0, itemsToShow),
-    [filteredPlans, itemsToShow]
-  );
+  const currentPlans = useMemo(() => {
+    const result = filteredPlans.slice(0, itemsToShow);
+    
+    return result;
+  }, [filteredPlans, itemsToShow]);
 
   const currentSpotlight = useMemo(
     () => filteredSpotlight.slice(0, itemsToShow),
@@ -228,32 +279,20 @@ function Landing() {
   // Load more items
   const loadMore = useCallback(() => {
     setItemsToShow(prev => prev + ITEMS_PER_PAGE);
-  }, []);
+  }, [ITEMS_PER_PAGE]);
 
   // Reset items when tab or search changes
   useEffect(() => {
     setItemsToShow(ITEMS_PER_PAGE);
   }, [activeTab, query]);
 
-  //when click on join
-  const [joinedPlans, setJoinedPlans] = useState({});
-
-  const handleJoin = (planName) => {
-    setJoinedPlans((prev) => ({
+  // Handle approach functionality
+  const handleApproach = useCallback((userName) => {
+    setApproachPeople(prev => ({
       ...prev,
-      [planName]: !prev[planName]
+      [userName]: !prev[userName]
     }));
-  };
-
-  //when click on approach
-  const [approachPeople, setApproachPeople] = useState({});
-  const handleApproach = (planName) => {
-    setApproachPeople((prev) => ({
-      ...prev,
-      [planName]: !prev[planName]
-    }));
-  };
-
+  }, []);
 
   // Check if there are more items to load
   const hasMore = useMemo(() => {
@@ -264,6 +303,7 @@ function Landing() {
     }
   }, [activeTab, currentPlans.length, filteredPlans.length, currentSpotlight.length, filteredSpotlight.length]);
 
+console.log("current Plans : ",currentPlans);
   return (
     <div className="min-h-screen bg-[#f9f9f9] text-[#ff5500] flex flex-col">
       {/* Main Content */}
@@ -318,24 +358,29 @@ function Landing() {
                 ) : activeTab === 'Plans'
                   ? currentPlans.map((p) => (
                     <div
-                      key={`${p.name}-${p.time}`}
+                      key={p.id}
                       className={`rounded-lg overflow-hidden transition-all duration-300 ease-out ${isTransitioning
                         ? 'opacity-0 translate-y-4 scale-95'
                         : 'opacity-100 translate-y-0 scale-100'
                         }`}
                     >
+                    
                       <PlanCard
-                        key={`${p.name}-${p.time}`}
+                        // key={p.id} 
                         glow={glowEnabled}
                         bannerImage={p.bannerImage}
                         avatarUrl={p.avatarUrl}
-                        name={p.name}
+                        name={p.host.name}
                         subtitle={p.subtitle}
-                        time={p.time}
-                        location={p.location}
-                        join={!!joinedPlans[p.name]}
-                        onJoin={() => handleJoin(p.name)}
+                        time={p.start_time}
+                        location={p.address}
+                        join={!!joinedPlans[p.id]}
+                        onJoin={(e) => {
+                          e.stopPropagation();
+                          handleJoin(p.id);
+                        }}
                         onCardClick={() => setSelectedPlan(p)}
+                      
                       />
                     </div>
                   ))

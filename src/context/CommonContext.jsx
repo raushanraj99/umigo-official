@@ -9,27 +9,33 @@ export function CommonProvider({ children }) {
   // Glow mode state
   const [glowEnabled, setGlowEnabled] = useState(false);
   const [glowBtnVisible, setGlowBtnVisible] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Initialize glow mode by checking the glow endpoint
+  // Initialize glow mode by checking the user's profile
   useEffect(() => {
     const initGlowMode = async () => {
       try {
-        // Try to get glow mode status
-        const response = await userAPI.getGlowMode();
-        // If we get a response, glow mode is enabled
-        setGlowEnabled(true);
-      } catch (error) {
-        // If the API returns an error, assume glow mode is disabled
-        // This handles the case where the endpoint returns 404 when glow mode is off
-        if (error.response?.status !== 404) {
-          console.error('Error checking glow mode:', error);
+        // Get current user's profile which should include glow mode status
+        const profile = await authAPI.getProfile();
+        // Check if the profile has glow mode status
+        if (profile && profile.glow_mode !== undefined) {
+          setGlowEnabled(profile.glow_mode);
+        } else {
+          // Default to false if not specified
+          setGlowEnabled(false);
         }
+      } catch (error) {
+        console.error('Error checking glow mode:', error);
         setGlowEnabled(false);
       }
     };
     
-    initGlowMode();
-  }, []);
+    if (isAuthenticated) {
+      initGlowMode();
+    } else {
+      setGlowEnabled(false);
+    }
+  }, [isAuthenticated]);
 
   // Toggle glow mode
   const toggleGlowMode = async () => {

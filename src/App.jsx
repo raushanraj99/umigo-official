@@ -8,11 +8,14 @@ import AppRoutes from "./routes/AppRoutes";
 import "./App.css";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { HangoutProvider } from './context/HangoutContext';
+
 
 function App() {
   return (
     <AuthProvider>
       <CommonProvider>
+        <HangoutProvider>
         <Router>
           <div className="App min-h-screen w-full bg-[#f9f9f9] text-[#ff5500]">
             <ToastContainer position="top-center" hideProgressBar theme="light" />
@@ -22,6 +25,7 @@ function App() {
             </div>
           </div>
         </Router>
+      </HangoutProvider>
       </CommonProvider>
     </AuthProvider>
   );

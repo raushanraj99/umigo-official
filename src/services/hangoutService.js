@@ -101,7 +101,7 @@ const hangoutService = {
             .join('&');
         }
       });
-      console.log("hangout response data:", response);
+      // console.log("hangout response data:", response);
       return response;
       
     } catch (error) {
@@ -137,7 +137,7 @@ const hangoutService = {
         ...hangoutData,
         tags: Array.isArray(hangoutData.tags) ? hangoutData.tags : []
       });
-      console.log("hangout response data:", response);
+      
       return response.data;
     } catch (error) {
       console.error('Error creating hangout:', error);
@@ -157,7 +157,8 @@ const hangoutService = {
       }
 
       const response = await api.get(`/api/hangouts/${hangoutId}`);
-      return response.data;
+      console.log("hangout response data:", response);
+      return response;
     } catch (error) {
       console.error('Error fetching hangout details:', error);
       throw error.response?.data || error;

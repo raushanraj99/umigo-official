@@ -6,7 +6,7 @@ function PlanCard({
   avatarUrl,
   name,
   subtitle,
-  time,
+  start_time,
   location,
   onCardClick,
   onJoin,
@@ -26,9 +26,10 @@ function PlanCard({
   //     setjoin(e);
   //   }
   // };
-
+  
   const handleJoinClick = (e) => {
     e.stopPropagation();
+    onCardClick?.();
     if (onJoin) {
       onJoin();
     }

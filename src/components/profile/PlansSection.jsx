@@ -61,7 +61,7 @@ const PlansSection = ({ User }) => {
 
           const response = await hangoutService.getUserHostedHangouts(User.user_id);
           
-          console.log("Plans API response:", response)
+          // console.log("Plans API response:", response)
           
           if (isMounted) {
             // Handle the response structure properly
