@@ -10,6 +10,7 @@ export function CommonProvider({ children }) {
   const [glowEnabled, setGlowEnabled] = useState(false);
   const [glowBtnVisible, setGlowBtnVisible] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isGlowModeModalOpen, setIsGlowModeModalOpen] = useState(false);
 
   // Initialize glow mode by checking the user's profile
   useEffect(() => {
@@ -39,16 +40,16 @@ export function CommonProvider({ children }) {
 
   // Toggle glow mode
   const toggleGlowMode = async () => {
+    const newValue = !glowEnabled;
     try {
-      const newValue = !glowEnabled;
       if (newValue) {
-        // Enable glow mode
-        await userAPI.updateGlowMode(true);
+        // If enabling glow mode, show the modal
+        setIsGlowModeModalOpen(true);
       } else {
-        // Disable glow mode
-        await userAPI.disableGlowMode();
+        // If disabling glow mode, update immediately
+        await userAPI.updateGlowMode(false);
+        setGlowEnabled(false);
       }
-      setGlowEnabled(newValue);
       return true;
     } catch (error) {
       console.error('Error toggling glow mode:', error);
@@ -60,13 +61,7 @@ export function CommonProvider({ children }) {
   const setGlowMode = async (value) => {
     if (value === glowEnabled) return true;
     try {
-      if (value) {
-        // Enable glow mode
-        await userAPI.updateGlowMode(true);
-      } else {
-        // Disable glow mode
-        await userAPI.disableGlowMode();
-      }
+      await userAPI.updateGlowMode(value);
       setGlowEnabled(value);
       return true;
     } catch (error) {
@@ -93,7 +88,9 @@ export function CommonProvider({ children }) {
     glowBtnVisible,
     toggleGlowMode,
     setGlowMode,
-    setGlowButtonVisibility
+    setGlowButtonVisibility,
+    isGlowModeModalOpen,
+    setIsGlowModeModalOpen
   };
 
   return (

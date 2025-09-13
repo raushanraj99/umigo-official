@@ -25,7 +25,6 @@ const navItems = [
 
 export default function Header() {
   const [isCreatePostModalOpen, setIsCreatePostModalOpen] = useState(false);
-  const [isGlowModeModalOpen, setIsGlowModeModalOpen] = useState(false);
   const {
     showSearch,
     toggleSearch,
@@ -34,7 +33,9 @@ export default function Header() {
     glowBtnVisible,
     toggleGlowMode,
     setGlowMode,
-    setGlowButtonVisibility
+    setGlowButtonVisibility,
+    isGlowModeModalOpen,
+    setIsGlowModeModalOpen
   } = useCommon();
   const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
@@ -75,8 +76,9 @@ export default function Header() {
     }
   };
 
-  const handleGlowModeSave = async () => {
+  const handleGlowModeSave = async (formData) => {
     try {
+      // Save the glow mode settings and enable glow mode
       await setGlowMode(true);
       setIsGlowModeModalOpen(false);
     } catch (error) {
@@ -241,13 +243,7 @@ export default function Header() {
       />
 
       {/* Glow Mode Modal */}
-
-      <GlowModeModal
-        isOpen={isGlowModeModalOpen}
-        onClose={() => setIsGlowModeModalOpen(false)}
-        onSave={handleGlowModeSave}
-        setGlowEnabled={setGlowMode}
-      />
+      <GlowModeModal onSave={handleGlowModeSave} />
     </>
   );
 }
