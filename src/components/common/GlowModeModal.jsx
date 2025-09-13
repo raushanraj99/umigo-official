@@ -1,8 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { useCommon } from '../../context/CommonContext';
 
-const GlowModeModal = ({ onSave, onClose, isOpen }) => {
-  const { isGlowModeModalOpen, setIsGlowModeModalOpen, glowEnabled, setGlowMode } = useCommon();
+const GlowModeModal = ({ isOpen, onClose, onSave, setGlowEnabled }) => {
   const modalRef = useRef(null);
   const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
@@ -48,19 +46,19 @@ const GlowModeModal = ({ onSave, onClose, isOpen }) => {
     }
   };
 
-  // Handle click outside to close modal
+  // Handle click outside
   const handleClickOutside = useCallback((event) => {
     if (modalRef.current && !modalRef.current.contains(event.target)) {
-      setIsGlowModeModalOpen(false);
+      onClose();
     }
-  }, [setIsGlowModeModalOpen]);
+  }, [onClose]);
 
-  // Handle Escape key to close modal
+  // Handle escape key press
   const handleEscapeKey = useCallback((event) => {
     if (event.key === 'Escape') {
-      setIsGlowModeModalOpen(false);
+      onClose();
     }
-  }, [setIsGlowModeModalOpen]);
+  }, [onClose]);
 
   // Handle Enter key press in form
   const handleKeyDown = useCallback((event) => {
@@ -69,14 +67,15 @@ const GlowModeModal = ({ onSave, onClose, isOpen }) => {
       // Call save logic directly to avoid circular dependency
       if (validateForm()) {
         onSave(formData);
-        setIsGlowModeModalOpen(false);
+        setGlowEnabled(true);
+        onClose();
       }
     }
-  }, [formData, onSave, setIsGlowModeModalOpen]);
+  }, [formData, onSave, setGlowEnabled, onClose]);
 
   // Add/remove event listeners
   useEffect(() => {
-    if (isGlowModeModalOpen) {
+    if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
       document.addEventListener('keydown', handleEscapeKey);
       document.addEventListener('keydown', handleKeyDown);
@@ -87,17 +86,17 @@ const GlowModeModal = ({ onSave, onClose, isOpen }) => {
       document.removeEventListener('keydown', handleEscapeKey);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isGlowModeModalOpen, handleClickOutside, handleEscapeKey, handleKeyDown]);
+  }, [isOpen, handleClickOutside, handleEscapeKey, handleKeyDown]);
 
   // Scroll to selected duration on mount
   useEffect(() => {
-    if (durationContainerRef.current && isGlowModeModalOpen) {
+    if (durationContainerRef.current && isOpen) {
       const selectedElement = durationContainerRef.current.querySelector('.duration-option.selected');
       if (selectedElement) {
         selectedElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }
-  }, [isGlowModeModalOpen]);
+  }, [isOpen]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -120,22 +119,25 @@ const GlowModeModal = ({ onSave, onClose, isOpen }) => {
   const handleSave = useCallback(async (e) => {
     if (e) e.preventDefault();
     
-    if (validateForm()) {
-      try {
-        await onSave(formData);
-        setIsGlowModeModalOpen(false);
-      } catch (error) {
-        console.error('Error saving glow mode settings:', error);
-      }
+    if (!validateForm()) {
+      return;
     }
-  }, [formData, onSave, setIsGlowModeModalOpen]);
+    
+    try {
+      await onSave(formData);
+      onClose();
+    } catch (error) {
+      console.error('Error saving glow mode settings:', error);
+      setErrors({ submit: 'Failed to save settings. Please try again.' });
+    }
+  }, [formData, onSave, onClose]);
 
-  if (!isGlowModeModalOpen) return null;
+  if (!isOpen) return null;
 
   return (
     <div 
       className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-      onClick={() => setIsGlowModeModalOpen(false)}
+      onClick={onClose}
     >
 
       {/* Modal */}

@@ -101,12 +101,26 @@ const hangoutService = {
             .join('&');
         }
       });
-      // console.log("hangout response data:", response);
-      return response;
+      
+      // Ensure we always return a consistent structure
+      if (response && response) {
+        return response;
+      }
+      
+      return { hangouts: [], total: 0, limit: safeFilters.limit, offset: safeFilters.offset || 0, hasMore: false };
       
     } catch (error) {
       console.error('Error fetching hangouts:', error);
-      throw error.response?.data || error;
+      
+      // Return empty results on error to prevent UI breaking
+      return { 
+        hangouts: [], 
+        total: 0, 
+        limit: filters.limit || 20, 
+        offset: filters.offset || 0, 
+        hasMore: false,
+        error: error.response?.data?.message || 'Failed to fetch hangouts'
+      };
     }
   },
 

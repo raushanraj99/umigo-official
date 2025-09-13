@@ -159,7 +159,7 @@ function Landing() {
   const ITEMS_PER_PAGE = 9;
   const [query, setQuery] = useState('');
   const [activeTab, setActiveTab] = useState('Plans'); // Make sure it's capitalized to match TabSwitcher
-  const { glowEnabled, setGlowMode, showSearch } = useCommon();
+  const { glowEnabled, setGlowEnabled, setGlowMode, showSearch } = useCommon();
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -185,35 +185,55 @@ function Landing() {
     const fetchHangouts = async () => {
       setIsLoading(true);
       setError(null);
+      
       try {
         const response = await getHangouts({ status: 'active' });
         
-        // Format the data to match the expected structure for PlanCard
-        const formattedPlans = response.hangouts.map(plan => ({
-          ...plan,
-          id: plan._id,
-          name: plan.creator?.name || 'Anonymous',
-          subtitle: plan.title || 'No title',
-          time: plan.time ? new Date(plan.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Time not set',
-          location: plan.location || 'Location not specified',
-          bannerImage: plan.imageUrl || 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1200&auto=format&fit=crop',
-          avatarUrl: plan.creator?.profileImage || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200&auto=format&fit=crop'
-        }));
+        // If there was an error in the response but we still got a response object
+        if (response.error) {
+          console.error('Error in hangouts response:', response.error);
+          setError(response.error);
+          toast.error(response.error);
+          setSamplePlans([]);
+          return;
+        }
         
-        setSamplePlans(formattedPlans);
+        // If we have hangouts data, format it
+        if (response.hangouts && Array.isArray(response.hangouts)) {
+          const formattedPlans = response.hangouts.map(plan => ({
+            ...plan,
+            id: plan._id || plan.id, // Handle both _id and id
+            name: plan.creator?.name || plan.host?.name || 'Anonymous',
+            subtitle: plan.title || 'No title',
+            time: plan.start_time || plan.time ? 
+              new Date(plan.start_time || plan.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 
+              'Time not set',
+            location: plan.location || plan.address || 'Location not specified',
+            bannerImage: plan.imageUrl || plan.bannerImage || 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1200&auto=format&fit=crop',
+            avatarUrl: plan.creator?.profileImage || plan.host?.profileImage || plan.avatarUrl || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200&auto=format&fit=crop'
+          }));
+          
+          setSamplePlans(formattedPlans);
+        } else {
+          console.warn('No hangouts data in response:', response);
+          setSamplePlans([]);
+        }
       } catch (err) {
-        console.error('Error fetching hangouts:', err);
-        setError(err.response?.data?.message || 'Failed to load hangouts');
-        toast.error('Failed to load hangouts');
-        // Fallback to empty array instead of undefined
+        console.error('Error in fetchHangouts:', err);
+        const errorMessage = err.message || 'Failed to load hangouts';
+        setError(errorMessage);
+        toast.error(errorMessage);
         setSamplePlans([]);
       } finally {
         setIsLoading(false);
       }
     };
-  
-    fetchHangouts();
-  }, []);
+    
+    // Only fetch if we don't have data yet
+    if (samplePlans.length === 0) {
+      fetchHangouts();
+    }
+  }, [getHangouts]);
   
 
   // Handle glow mode changes and update tab accordingly

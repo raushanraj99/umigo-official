@@ -25,17 +25,16 @@ const navItems = [
 
 export default function Header() {
   const [isCreatePostModalOpen, setIsCreatePostModalOpen] = useState(false);
+  const [isGlowModeModalOpen, setIsGlowModeModalOpen] = useState(false);
   const {
     showSearch,
     toggleSearch,
     closeSearch,
-    glowEnabled,
-    glowBtnVisible,
     toggleGlowMode,
+    glowEnabled,
+    setGlowEnabled,
     setGlowMode,
-    setGlowButtonVisibility,
-    isGlowModeModalOpen,
-    setIsGlowModeModalOpen
+    setGlowButtonVisibility
   } = useCommon();
   const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
@@ -53,9 +52,39 @@ export default function Header() {
   const handleGlowModeToggle = async () => {
     if (!isAuthenticated) {
       navigate('/login', { state: { from: location.pathname } });
-      return;
+      return false;
     }
-    await toggleGlowMode();
+    
+    try {
+      if (!glowEnabled) {
+        // If enabling glow mode, open the modal
+        setIsGlowModeModalOpen(true);
+        return true;
+      } else {
+        // If disabling glow mode, just toggle it off
+        return await toggleGlowMode(false);
+      }
+    } catch (error) {
+      console.error('Error handling glow mode toggle:', error);
+      return false;
+    }
+  };
+  
+  // Handle saving glow mode settings from the modal
+  const handleGlowModeSave = async (formData) => {
+    try {
+      // First enable glow mode
+      const success = await toggleGlowMode(true);
+      if (success) {
+        // If you need to save additional form data, do it here
+        // await userAPI.updateGlowSettings(formData);
+        setIsGlowModeModalOpen(false);
+      }
+      return success;
+    } catch (error) {
+      console.error('Error saving glow mode settings:', error);
+      return false;
+    }
   };
 
   // Update document class when glow mode changes
@@ -76,15 +105,6 @@ export default function Header() {
     }
   };
 
-  const handleGlowModeSave = async (formData) => {
-    try {
-      // Save the glow mode settings and enable glow mode
-      await setGlowMode(true);
-      setIsGlowModeModalOpen(false);
-    } catch (error) {
-      console.error('Failed to enable glow mode:', error);
-    }
-  };
 
   const isActiveRoute = (itemTo) => {
     if (!itemTo) return false;
@@ -243,7 +263,12 @@ export default function Header() {
       />
 
       {/* Glow Mode Modal */}
-      <GlowModeModal onSave={handleGlowModeSave} />
+
+      <GlowModeModal
+        isOpen={isGlowModeModalOpen}
+        onClose={() => setIsGlowModeModalOpen(false)}
+        onSave={handleGlowModeSave}
+      />
     </>
   );
 }

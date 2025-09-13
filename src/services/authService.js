@@ -144,8 +144,13 @@ export const authAPI = {
   getProfile: async () => {
     try {
       const response = await api.get('/api/user/me');
-  
-       
+      
+      // If the request was successful but returned no data
+      if (!response) {
+        console.warn('Empty response received from /api/user/me');
+        return null;
+      }
+      
       // Handle different possible response structures
       if (response.user) {
         return response.user; // Return user object directly
@@ -154,11 +159,20 @@ export const authAPI = {
       } else if (response.data) {
         return response.data;
       } else {
+        // If we get here, the response structure is unexpected
+        console.warn('Unexpected response structure from /api/user/me:', response);
         return response; // Return entire response if structure is unexpected
       }
     } catch (error) {
       console.error('Error fetching user profile:', error);
-      throw error;
+      
+      // If it's a 401, clear the token as it might be invalid
+      if (error.response?.status === 401) {
+        removeToken();
+      }
+      
+      // Return null instead of throwing to prevent unhandled promise rejections
+      return null;
     }
   },
 
@@ -250,9 +264,13 @@ export const userAPI = {
    */
   updateGlowMode: async (glowMode) => {
     try {
-      const response = await api.put('/api/user/glow', { glow_mode: glowMode });
-      console.log("update glow mode api response", response);
-      return response;
+      // Ensure glowMode is a boolean
+      const glowModeBool = Boolean(glowMode);
+      const response = await api.put('/api/user/glow', { glow_mode: glowModeBool });
+      console.log("Updated glow mode to:", glowModeBool, "API response:", response);
+      
+      // Return the updated state with glow_mode included
+      return { ...response, glow_mode: glowModeBool };
     } catch (error) {
       console.error('Error updating glow mode:', error);
       throw error;

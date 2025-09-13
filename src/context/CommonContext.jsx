@@ -10,24 +10,29 @@ export function CommonProvider({ children }) {
   const [glowEnabled, setGlowEnabled] = useState(false);
   const [glowBtnVisible, setGlowBtnVisible] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isGlowModeModalOpen, setIsGlowModeModalOpen] = useState(false);
 
-  // Initialize glow mode by checking the user's profile
+  // Initialize glow mode by checking the user's profile and local storage
   useEffect(() => {
     const initGlowMode = async () => {
       try {
-        // Get current user's profile which should include glow mode status
+        // First check local storage for quick UI update
+        const savedGlowMode = localStorage.getItem('glowMode') === 'true';
+        setGlowEnabled(savedGlowMode);
+        
+        // Then verify with server
         const profile = await authAPI.getProfile();
-        // Check if the profile has glow mode status
         if (profile && profile.glow_mode !== undefined) {
-          setGlowEnabled(profile.glow_mode);
-        } else {
-          // Default to false if not specified
-          setGlowEnabled(false);
+          // Only update if different from local storage
+          if (savedGlowMode !== profile.glow_mode) {
+            setGlowEnabled(profile.glow_mode);
+            localStorage.setItem('glowMode', profile.glow_mode.toString());
+          }
         }
       } catch (error) {
-        console.error('Error checking glow mode:', error);
-        setGlowEnabled(false);
+        console.error('Error initializing glow mode:', error);
+        // Fall back to local storage or default to false
+        const savedGlowMode = localStorage.getItem('glowMode') === 'true';
+        setGlowEnabled(savedGlowMode);
       }
     };
     
@@ -35,24 +40,37 @@ export function CommonProvider({ children }) {
       initGlowMode();
     } else {
       setGlowEnabled(false);
+      localStorage.removeItem('glowMode');
     }
   }, [isAuthenticated]);
 
   // Toggle glow mode
-  const toggleGlowMode = async () => {
-    const newValue = !glowEnabled;
+  const toggleGlowMode = async (enabled = !glowEnabled) => {
     try {
-      if (newValue) {
-        // If enabling glow mode, show the modal
-        setIsGlowModeModalOpen(true);
-      } else {
-        // If disabling glow mode, update immediately
-        await userAPI.updateGlowMode(false);
-        setGlowEnabled(false);
+      // Update local state immediately for better UX
+      setGlowEnabled(enabled);
+      localStorage.setItem('glowMode', enabled.toString());
+      
+      // Update server state
+      const response = await userAPI.updateGlowMode(enabled);
+      
+      // Verify server response matches our state
+      if (response && response.glow_mode !== undefined) {
+        if (response.glow_mode !== enabled) {
+          // If server response doesn't match, sync with server
+          setGlowEnabled(response.glow_mode);
+          localStorage.setItem('glowMode', response.glow_mode.toString());
+        }
       }
+      
+      // Dispatch custom event for components that need to react to glow mode changes
+      window.dispatchEvent(new CustomEvent('glowModeChange', { detail: enabled }));
+      
       return true;
     } catch (error) {
       console.error('Error toggling glow mode:', error);
+      // Revert to previous state on error
+      setGlowMode(!enabled);
       return false;
     }
   };
@@ -61,7 +79,13 @@ export function CommonProvider({ children }) {
   const setGlowMode = async (value) => {
     if (value === glowEnabled) return true;
     try {
-      await userAPI.updateGlowMode(value);
+      if (value) {
+        // Enable glow mode
+        await userAPI.updateGlowMode(true);
+      } else {
+        // Disable glow mode
+        await userAPI.updateGlowMode(false);
+      }
       setGlowEnabled(value);
       return true;
     } catch (error) {
@@ -85,12 +109,11 @@ export function CommonProvider({ children }) {
     
     // Glow Mode
     glowEnabled,
+    // setGlowEnabled,
     glowBtnVisible,
     toggleGlowMode,
     setGlowMode,
-    setGlowButtonVisibility,
-    isGlowModeModalOpen,
-    setIsGlowModeModalOpen
+    setGlowButtonVisibility
   };
 
   return (

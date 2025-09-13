@@ -60,36 +60,39 @@ function PlanCard({
       </div>
 
       {/* Content */}
-      <div className="w-full p-4 pt-14">
-        <div className="flex justify-between items-start w-full">
-          <div>
-            {subtitle && (
-              <div className="text-[#1c1c1c] font-bold text-lg">
-                {subtitle}
-              </div>
-            )}
-            {start_time && (
-              <div className="text-gray-600 text-sm mt-1">
-                {start_time}
-              </div>
-            )}
-            {location && (
-              <div className="text-gray-600 text-sm flex items-center gap-1 mt-1">
-                <span className='opacity-70'>{location}</span>
-              </div>
-            )}
-          </div>
-          <button
-            onClick={handleJoinClick}
-            className={`h-fit px-4 py-2 rounded-xl whitespace-nowrap z-10 cursor-pointer transition-all duration-300 ${
-              join
-                ? 'bg-white text-[#ff5500] border border-[#ff5500] cursor-not-allowed'
-                : 'bg-[#ff5500] text-white hover:bg-[#e64d00]'
-            }`}
-          >
-            {join ? 'Requested' : 'Join'}
-          </button>
+      <div className="w-full p-4 pt-14 flex justify-between">
+        <div>
+          {subtitle && (
+            <div className="mt-3 text-[#1c1c1c] flex items-center font-bold text-xl gap-2">
+              {/* <span role="img" aria-label="place">🛒</span> */}
+              <span>{subtitle}</span>
+            </div>
+          )}
+          {location && (
+            <div className=" text-[#1c1c1c] flex items-center gap-1">
+              {/* <span role="img" aria-label="place">📍</span> */}
+              <span className='opacity-60 text-sm'>{location}</span>
+            </div>
+          )
+          }
         </div>
+        {/* Join button */}
+        <button
+          onClick={handleJoinClick}
+          className={`h-fit px-4 py-2 mt-5 rounded-xl whitespace-nowrap z-10 cursor-pointer transition-all duration-300 ${join
+              ? 'bg-white text-[#ff5500] border border-[#ff5500] cursor-not-allowed'
+              : 'bg-[#ff5500] text-white hover:bg-[#e64d00]'
+            }`}
+        >
+          {join ? "Requested" : "Join"}
+        </button>
+
+        {/* {subtitle && (
+          <div className="mt-3 text-[#2b2b2b] flex items-center gap-2">
+            <span role="img" aria-label="place">🛒</span>
+            <span className="opacity-90">{subtitle}</span>
+          </div>
+        )} */}
       </div>
     </div>
   );
