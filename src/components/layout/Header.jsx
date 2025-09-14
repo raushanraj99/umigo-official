@@ -12,7 +12,7 @@ import { IoNotificationsOutline } from "react-icons/io5";
 import { IoMdAddCircleOutline } from "react-icons/io";
 import { FaLandMineOn, FaRegUser } from "react-icons/fa6";
 import { IoSearch } from "react-icons/io5";
-// import { Toggle } from '../ui/toggle';
+
 
 
 
@@ -60,6 +60,7 @@ export default function Header() {
       if (!glowEnabled) {
         // If enabling glow mode, open the modal
         setIsGlowModeModalOpen(true);
+        
         return true;
       } else {
         // If disabling glow mode, just toggle it off
@@ -83,7 +84,7 @@ export default function Header() {
         // await userAPI.updateGlowSettings(formData);
         setIsGlowModeModalOpen(false);
       }
-      return success;
+      return success; 
     } catch (error) {
       console.error('Error saving glow mode settings:', error);
       return false;
@@ -150,35 +151,6 @@ export default function Header() {
           </nav>
           {/* Right icons + auth + glow toggle */}
           <div className="flex items-center gap-4">
-
-            {/* Authentication status */}
-            {/* {isAuthenticated ? (
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-[#ff5500]">Welcome, {user?.name || 'User'}</span>
-                <button
-                  onClick={handleLogout}
-                  className="px-3 py-1 text-sm bg-[#ff5500] text-white rounded-lg hover:bg-[#e64d00] transition-colors"
-                >
-                  Logout
-                </button>
-              </div>
-            ) : (
-              <NavLink
-                to="/login"
-                className="px-3 py-1 text-sm bg-[#ff5500] text-white rounded-lg hover:bg-[#e64d00] transition-colors"
-              >
-                Login
-              </NavLink>
-            )}  */}
-
-            {/* <button
-              className='text-2xl cursor-pointer text-gray-600 hover:text-[#FF5500] transition-colors'
-              onClick={toggleSearch}
-              aria-label="Search"
-            >
-              <IoSearch />
-            </button> */}
-
 
             {/* Glow switch for home screen */}
             {isGlowVisible && (

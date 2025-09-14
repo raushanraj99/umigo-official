@@ -28,10 +28,11 @@ function PlanCard({
   // };
   
   const handleJoinClick = (e) => {
+    // Stop event propagation to prevent card click
     e.stopPropagation();
-    onCardClick?.();
+    // Call onJoin with the event object if it exists
     if (onJoin) {
-      onJoin();
+      onJoin(e);
     }
   };
 
@@ -83,6 +84,7 @@ function PlanCard({
               ? 'bg-white text-[#ff5500] border border-[#ff5500] cursor-not-allowed'
               : 'bg-[#ff5500] text-white hover:bg-[#e64d00]'
             }`}
+          disabled={join}
         >
           {join ? "Requested" : "Join"}
         </button>

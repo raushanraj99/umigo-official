@@ -159,7 +159,7 @@ function Landing() {
   const ITEMS_PER_PAGE = 9;
   const [query, setQuery] = useState('');
   const [activeTab, setActiveTab] = useState('Plans'); // Make sure it's capitalized to match TabSwitcher
-  const { glowEnabled, setGlowEnabled, setGlowMode, showSearch } = useCommon();
+  const { glowEnabled, setGlowEnabled, setGlowMode, showSearch, glowUsers } = useCommon();
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -179,7 +179,7 @@ function Landing() {
     }));
     toast.success('Join request sent!');
   }, []);
-  
+  console.log("glowUsers : ",glowUsers)
   // Set initial tab
   useEffect(() => {
     const fetchHangouts = async () => {
@@ -323,7 +323,7 @@ function Landing() {
     }
   }, [activeTab, currentPlans.length, filteredPlans.length, currentSpotlight.length, filteredSpotlight.length]);
 
-console.log("current Plans : ",currentPlans);
+
   return (
     <div className="min-h-screen bg-[#f9f9f9] text-[#ff5500] flex flex-col">
       {/* Main Content */}
