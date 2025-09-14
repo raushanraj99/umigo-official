@@ -12,6 +12,7 @@ import { IoNotificationsOutline } from "react-icons/io5";
 import { IoMdAddCircleOutline } from "react-icons/io";
 import { FaLandMineOn, FaRegUser } from "react-icons/fa6";
 import { IoSearch } from "react-icons/io5";
+// import { Toggle } from '../ui/toggle';
 
 
 
@@ -54,7 +55,7 @@ export default function Header() {
       navigate('/login', { state: { from: location.pathname } });
       return false;
     }
-    
+    console.log("gloww enable in header : ",glowEnabled)
     try {
       if (!glowEnabled) {
         // If enabling glow mode, open the modal
@@ -72,9 +73,11 @@ export default function Header() {
   
   // Handle saving glow mode settings from the modal
   const handleGlowModeSave = async (formData) => {
+
     try {
       // First enable glow mode
       const success = await toggleGlowMode(true);
+      // console.log("handle glow mode save data : ",formData);
       if (success) {
         // If you need to save additional form data, do it here
         // await userAPI.updateGlowSettings(formData);
@@ -177,62 +180,39 @@ export default function Header() {
             </button> */}
 
 
-            {/* Glow switch for home screen*/}
-            {
-              isGlowVisible ?
-                <div className='flex items-center gap-5'>
-                  <button
-                    className='text-2xl cursor-pointer text-gray-600 hover:text-[#FF5500] transition-colors'
-                    onClick={toggleSearch}
-                    aria-label="Search"
+            {/* Glow switch for home screen */}
+            {isGlowVisible && (
+              <div className="flex items-center gap-5">
+                <button
+                  className="text-2xl cursor-pointer text-gray-600 hover:text-[#FF5500] transition-colors"
+                  onClick={toggleSearch}
+                  aria-label="Search"
+                >
+                  <IoSearch />
+                </button>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">Glow Mode</span>
+                  <div 
+                    onClick={handleGlowModeToggle}
+                    className={[
+                      'relative h-6 w-14 rounded-full transition-colors cursor-pointer shrink-0 flex items-center px-1',
+                      glowEnabled ? 'bg-[#ff5500]' : 'bg-gray-200'
+                    ].join(' ')}
+                    role="switch"
+                    aria-checked={glowEnabled}
+                    aria-label="Toggle glow mode"
+                    tabIndex={0}
                   >
-                    <IoSearch />
-                  </button>
-                  <div className={['flex gap-2 items-center border p-2 rounded-2xl transition-all duration-300 ', glowEnabled ? "border-[#ff5500] text-[#ff5500]" : "border-gray-500 text-gray-500"].join(' ')}>
-                    <div className='text-sm'>
-                      GlowMode
-                    </div>
-                    <div
-                      role="switch"
-                      aria-checked={glowEnabled}
-                      aria-label="Enable glow mode"
-                      tabIndex={0}
-                      onClick={() => {
-                        if (glowEnabled) {
-                          toggleGlowMode();
-                        } else {
-                          handleGlowModeToggle();
-                        }
-                      }}
-                      onKeyDown={e => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          if (glowEnabled) {
-                            toggleGlowMode();
-                          } else {
-                            handleGlowModeToggle();
-                          }
-                        }
-                      }}
+                    <span
                       className={[
-                        'relative h-6 w-12 rounded-full transition-colors cursor-pointer shrink-0 flex items-center px-1',
-                        glowEnabled ? 'bg-[#ff5500]' : 'bg-gray-200'
+                        'h-5 w-5 rounded-full bg-white shadow-sm transition-transform',
+                        glowEnabled ? 'translate-x-8' : 'translate-x-0'
                       ].join(' ')}
-                    >
-                      <span
-                        className={[
-                          'h-4 w-4 rounded-full bg-white shadow-sm transition-transform',
-                          glowEnabled ? 'translate-x-8' : 'translate-x-0'
-                        ].join(' ')}
-                      />
-                    </div>
+                    />
                   </div>
                 </div>
-                :
-                <div
-                  className={
-                    'relative h-6 w-14 rounded-full transition-colors cursor-pointer shrink-0 flex items-center px-1 bg-transparent'} />
-            }
+              </div>
+            )}
           </div>
         </div>
       </header>

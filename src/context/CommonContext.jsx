@@ -9,40 +9,40 @@ export function CommonProvider({ children }) {
   // Glow mode state
   const [glowEnabled, setGlowEnabled] = useState(false);
   const [glowBtnVisible, setGlowBtnVisible] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  // const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   // Initialize glow mode by checking the user's profile and local storage
-  useEffect(() => {
-    const initGlowMode = async () => {
-      try {
-        // First check local storage for quick UI update
-        const savedGlowMode = localStorage.getItem('glowMode') === 'true';
-        setGlowEnabled(savedGlowMode);
+  // useEffect(() => {
+  //   const initGlowMode = async () => {
+  //     try {
+  //       // First check local storage for quick UI update
+  //       // const savedGlowMode = localStorage.getItem('glowMode') === 'true';
+  //       // setGlowEnabled(savedGlowMode);
         
-        // Then verify with server
-        const profile = await authAPI.getProfile();
-        if (profile && profile.glow_mode !== undefined) {
-          // Only update if different from local storage
-          if (savedGlowMode !== profile.glow_mode) {
-            setGlowEnabled(profile.glow_mode);
-            localStorage.setItem('glowMode', profile.glow_mode.toString());
-          }
-        }
-      } catch (error) {
-        console.error('Error initializing glow mode:', error);
-        // Fall back to local storage or default to false
-        const savedGlowMode = localStorage.getItem('glowMode') === 'true';
-        setGlowEnabled(savedGlowMode);
-      }
-    };
+  //       // Then verify with server
+  //       const profile = await authAPI.getProfile();
+  //       if (profile && profile.glow_mode !== undefined) {
+  //         // Only update if different from local storage
+  //         if (savedGlowMode !== profile.glow_mode) {
+  //           setGlowEnabled(profile.glow_mode);
+  //           localStorage.setItem('glowMode', profile.glow_mode.toString());
+  //         }
+  //       }
+  //     } catch (error) {
+  //       console.error('Error initializing glow mode:', error);
+  //       // Fall back to local storage or default to false
+  //       const savedGlowMode = localStorage.getItem('glowMode') === 'true';
+  //       setGlowEnabled(savedGlowMode);
+  //     }
+  //   };
     
-    if (isAuthenticated) {
-      initGlowMode();
-    } else {
-      setGlowEnabled(false);
-      localStorage.removeItem('glowMode');
-    }
-  }, [isAuthenticated]);
+  //   // if (isAuthenticated) {
+  //   //   initGlowMode();
+  //   // } else {
+  //   //   setGlowEnabled(false);
+  //   //   localStorage.removeItem('glowMode');
+  //   // }
+  // }, []);
 
   // Toggle glow mode
   const toggleGlowMode = async (enabled = !glowEnabled) => {
@@ -53,6 +53,7 @@ export function CommonProvider({ children }) {
       
       // Update server state
       const response = await userAPI.updateGlowMode(enabled);
+      console.log("response toggle : ",response);
       
       // Verify server response matches our state
       if (response && response.glow_mode !== undefined) {
@@ -74,7 +75,7 @@ export function CommonProvider({ children }) {
       return false;
     }
   };
-
+console.log("glowEnabled : ",glowEnabled);
   // Set glow mode to a specific value
   const setGlowMode = async (value) => {
     if (value === glowEnabled) return true;
@@ -109,7 +110,7 @@ export function CommonProvider({ children }) {
     
     // Glow Mode
     glowEnabled,
-    // setGlowEnabled,
+    setGlowEnabled,
     glowBtnVisible,
     toggleGlowMode,
     setGlowMode,
