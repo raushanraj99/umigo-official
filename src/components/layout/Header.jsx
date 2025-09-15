@@ -15,6 +15,7 @@ import { IoSearch } from "react-icons/io5";
 
 
 
+
 const navItems = [
   { to: '/', label: 'Home', icon: <GoHome /> },
   { to: '/notifications', label: 'Alerts', icon: <IoNotificationsOutline /> },
@@ -30,9 +31,9 @@ export default function Header() {
     showSearch,
     toggleSearch,
     closeSearch,
-    glowEnabled,
-    glowBtnVisible,
     toggleGlowMode,
+    glowEnabled,
+    setGlowEnabled,
     setGlowMode,
     setGlowButtonVisibility
   } = useCommon();
@@ -49,14 +50,48 @@ export default function Header() {
     }
   }, [location])
 
-  useEffect(() => {
-    const saved = localStorage.getItem('glowMode');
-    if (saved !== null) {
-      const glowMode = JSON.parse(saved);
-      document.documentElement.classList.toggle('glow-mode', glowMode);
+  const handleGlowModeToggle = async () => {
+    if (!isAuthenticated) {
+      navigate('/login', { state: { from: location.pathname } });
+      return false;
     }
-  }, []);
+    console.log("gloww enable in header : ",glowEnabled)
+    try {
+      if (!glowEnabled) {
+        // If enabling glow mode, open the modal
+        setIsGlowModeModalOpen(true);
+        
+        return true;
+      } else {
+        // If disabling glow mode, just toggle it off
+        return await toggleGlowMode(false);
+      }
+    } catch (error) {
+      console.error('Error handling glow mode toggle:', error);
+      return false;
+    }
+  };
+  
+  // Handle saving glow mode settings from the modal
+  const handleGlowModeSave = async (formData) => {
 
+    try {
+      // First enable glow mode
+      const success = await toggleGlowMode(true);
+      // console.log("handle glow mode save data : ",formData);
+      if (success) {
+        // If you need to save additional form data, do it here
+        // await userAPI.updateGlowSettings(formData);
+        setIsGlowModeModalOpen(false);
+      }
+      return success; 
+    } catch (error) {
+      console.error('Error saving glow mode settings:', error);
+      return false;
+    }
+  };
+
+  // Update document class when glow mode changes
   useEffect(() => {
     document.documentElement.classList.toggle('glow-mode', glowEnabled);
   }, [glowEnabled]);
@@ -74,12 +109,6 @@ export default function Header() {
     }
   };
 
-  const handleGlowModeSave = (glowData) => {
-    console.log('GlowMode settings saved:', glowData);
-    // Enable glow mode after successful submission
-    setGlowMode(true);
-    setIsGlowModeModalOpen(false);
-  };
 
   const isActiveRoute = (itemTo) => {
     if (!itemTo) return false;
@@ -123,82 +152,39 @@ export default function Header() {
           {/* Right icons + auth + glow toggle */}
           <div className="flex items-center gap-4">
 
-            {/* Authentication status */}
-            {/* {isAuthenticated ? (
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-[#ff5500]">Welcome, {user?.name || 'User'}</span>
+            {/* Glow switch for home screen */}
+            {isGlowVisible && (
+              <div className="flex items-center gap-5">
                 <button
-                  onClick={handleLogout}
-                  className="px-3 py-1 text-sm bg-[#ff5500] text-white rounded-lg hover:bg-[#e64d00] transition-colors"
+                  className="text-2xl cursor-pointer text-gray-600 hover:text-[#FF5500] transition-colors"
+                  onClick={toggleSearch}
+                  aria-label="Search"
                 >
-                  Logout
+                  <IoSearch />
                 </button>
-              </div>
-            ) : (
-              <NavLink
-                to="/login"
-                className="px-3 py-1 text-sm bg-[#ff5500] text-white rounded-lg hover:bg-[#e64d00] transition-colors"
-              >
-                Login
-              </NavLink>
-            )}  */}
-
-            <button
-              className='text-2xl cursor-pointer text-gray-600 hover:text-[#FF5500] transition-colors'
-              onClick={toggleSearch}
-              aria-label="Search"
-            >
-              <IoSearch />
-            </button>
-
-
-            {/* Glow switch for home screen*/}
-            {
-              isGlowVisible ?
-                <div className={['flex gap-2 items-center border p-2 rounded-2xl transition-all duration-300 ', glowEnabled? "border-[#ff5500] text-[#ff5500]" : "border-gray-500 text-gray-500"].join(' ')}>
-                  <div>
-                    GlowMode
-                  </div>
-                  <div
-                    role="switch"
-                    aria-checked={glowEnabled}
-                    aria-label="Enable glow mode"
-                    tabIndex={0}
-                    onClick={() => {
-                      if (!glowEnabled) {
-                        setIsGlowModeModalOpen(true);
-                      } else {
-                        toggleGlowMode();
-                      }
-                    }}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        if (!glowEnabled) {
-                          setIsGlowModeModalOpen(true);
-                        } else {
-                          toggleGlowMode();
-                        }
-                      }
-                    }}
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">Glow Mode</span>
+                  <div 
+                    onClick={handleGlowModeToggle}
                     className={[
                       'relative h-6 w-14 rounded-full transition-colors cursor-pointer shrink-0 flex items-center px-1',
                       glowEnabled ? 'bg-[#ff5500]' : 'bg-gray-200'
                     ].join(' ')}
+                    role="switch"
+                    aria-checked={glowEnabled}
+                    aria-label="Toggle glow mode"
+                    tabIndex={0}
                   >
                     <span
                       className={[
-                        'h-4 w-4 rounded-full bg-white shadow-sm transition-transform',
+                        'h-5 w-5 rounded-full bg-white shadow-sm transition-transform',
                         glowEnabled ? 'translate-x-8' : 'translate-x-0'
                       ].join(' ')}
                     />
                   </div>
                 </div>
-                :
-                <div
-                  className={
-                    'relative h-6 w-14 rounded-full transition-colors cursor-pointer shrink-0 flex items-center px-1 bg-transparent'} />
-            }
+              </div>
+            )}
           </div>
         </div>
       </header>
@@ -229,11 +215,11 @@ export default function Header() {
       />
 
       {/* Glow Mode Modal */}
+
       <GlowModeModal
         isOpen={isGlowModeModalOpen}
         onClose={() => setIsGlowModeModalOpen(false)}
         onSave={handleGlowModeSave}
-        setGlowEnabled={setGlowMode}
       />
     </>
   );

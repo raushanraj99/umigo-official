@@ -85,7 +85,6 @@ const Profile = () => {
 
   useEffect(() => {
     fetchUser();
-    console.log("fetch user : ",fetchUser);
   }, [fetchUser]);
 
   const handleApproveRequest = async (requestId) => {
@@ -153,9 +152,9 @@ const Profile = () => {
     // await updateUserProfile({ location: newLocation });
   };
 
-  const handleProfileUpdate = (updatedUser) => {
-    setCurrentUser(updatedUser);
-    updateUser(updatedUser);
+  const handleProfileUpdate = () => {
+    setCurrentUser(currentUser);
+    updateUser(currentUser);
     // Optionally refresh the profile data
     fetchUser();
   };
@@ -203,7 +202,7 @@ const Profile = () => {
         />
       )}
 
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-white pb-6">
         {/* Top Bar */}
         <div className="bg-white border-b border-gray-200 px-4 py-3">
           <div className="flex items-center justify-between">
@@ -227,7 +226,7 @@ const Profile = () => {
             </button>
 
             <div className="flex items-center gap-2">
-              <div className="bg-white border border-gray-200 rounded-full px-3 py-1 flex items-center gap-2">
+              <div className="bg-white border border-gray-200 rounded-full px-3 py-1 flex items-center gap-1">
                 <svg
                   className="w-4 h-4 text-red-500"
                   fill="currentColor"
@@ -239,7 +238,7 @@ const Profile = () => {
                     clipRule="evenodd"
                   />
                 </svg>
-                <div className="flex-1 mx-4">
+                <div className="flex-1">
                   <div className="flex items-center">
                     <LocationSelector
                       initialLocation={location}
@@ -260,7 +259,7 @@ const Profile = () => {
         </div>
 
         {/* Profile section */}
-        <div className="flex justify-center flex-col md:flex-row gap-7 p-8">
+        <div className="flex flex-col md:flex-row gap-7 lg:gap-20 xl:gap-32 p-8 lg:px-20 xl:px-30">
           <div className="flex flex-col justify-center items-center">
             <div className="rounded-full border overflow-hidden">
               {currentUser?.image_url ? (
@@ -297,13 +296,13 @@ const Profile = () => {
             </div>
             <div className="flex gap-3 p-1 mt-4 font-medium">
               <button 
-                className="border border-orange-500 py-2 px-9 rounded-lg cursor-pointer hover:bg-orange-50 transition-colors"
+                className="border border-orange-500 py-2 px-9 rounded-lg cursor-pointer hover:bg-orange-50 transition-colors font-medium"
                 onClick={() => setShowEditProfile(true)}
               >
                 Edit Profile
               </button>
-              <button className="border border-orange-500 py-2 px-9 rounded-lg cursor-pointer hover:bg-orange-50 transition-colors">
-                Plan
+              <button className="border border-orange-500 py-2 px-9 rounded-lg cursor-pointer font-medium hover:bg-orange-50 transition-colors flex items-center gap-2">
+                <span className="bg-orange-500 rounded-full p-0.5 px-2 text-white text-sm">+</span> Plan
               </button>
             </div>
           </div>
@@ -364,13 +363,13 @@ const Profile = () => {
                       <>
                         <button
                           onClick={() => handleApproveRequest(request.id)}
-                          className="flex items-center justify-center px-4 py-2 text-sm sm:text-base font-medium text-white bg-green-500 hover:bg-green-600 rounded-lg transition-colors"
+                          className="flex items-center justify-center px-4 py-2 text-sm sm:text-base font-medium text-white bg-green-500 hover:bg-green-600 rounded-lg transition-colors cursor-pointer"
                         >
                           <FaCheck className="mr-2" /> Approve
                         </button>
                         <button
                           onClick={() => handleRejectRequest(request.id)}
-                          className="flex items-center justify-center px-4 py-2 text-sm sm:text-base font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors"
+                          className="flex items-center justify-center px-4 py-2 text-sm sm:text-base font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors cursor-pointer"
                         >
                           <FaTimes className="mr-2" /> Reject
                         </button>
@@ -382,13 +381,13 @@ const Profile = () => {
                         </span>
                         <button
                           onClick={() => navigateToChat(request)}
-                          className="flex items-center justify-center px-4 py-2 text-sm sm:text-base font-medium text-white bg-blue-500 hover:bg-blue-600 rounded-lg transition-colors"
+                          className="flex items-center justify-center px-4 py-2 text-sm sm:text-base font-medium text-white bg-blue-500 hover:bg-blue-600 rounded-lg transition-colors cursor-pointer"
                         >
                           <FaComment className="mr-2" /> Chat Now
                         </button>
                       </div>
                     ) : (
-                      <span className="px-3 py-1 text-sm font-medium text-red-800 bg-red-100 rounded-full text-center">
+                      <span className="px-3 py-1 text-sm font-medium text-red-800 bg-red-100 rounded-full text-center cursor-pointer">
                         Rejected
                       </span>
                     )}

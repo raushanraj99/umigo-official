@@ -12,21 +12,34 @@ const api = axios.create({
 // JWT Token Management
 const TOKEN_KEY = 'jwtToken';
 
+/**
+ * Set authentication token in localStorage
+ * @param {string} token - JWT token to store
+ */
 export const setToken = (token) => {
-  console.log("Setting token:", token)
   if (token) {
     localStorage.setItem(TOKEN_KEY, token);
+    // Set default auth header for future requests
+    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   } else {
-    localStorage.removeItem(TOKEN_KEY);
+    removeToken();
   }
 };
 
+/**
+ * Get stored authentication token
+ * @returns {string|null} Stored JWT token or null if not found
+ */
 export const getToken = () => {
   return localStorage.getItem(TOKEN_KEY);
 };
 
+/**
+ * Remove authentication token from storage
+ */
 export const removeToken = () => {
   localStorage.removeItem(TOKEN_KEY);
+  delete api.defaults.headers.common['Authorization'];
 };
 
 // Request interceptor to automatically attach JWT token
@@ -38,67 +51,99 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 // Response interceptor for error handling and token management
 api.interceptors.response.use(
-  (response) => {
-    // Return only the data payload for successful responses
-    return response.data;
-  },
+  (response) => response.data, // Return only the data payload for successful responses
   (error) => {
-    // Handle token expiration or authentication errors
-    if (error.response?.status === 401) {
-      removeToken();
-      // Optionally redirect to login page or show auth error
-      console.log('Token expired or invalid. Please log in again.');
+    const { response } = error;
+    let errorMessage = 'An unexpected error occurred';
+    
+    // Handle different error statuses
+    if (response) {
+      errorMessage = response.data?.error || response.statusText;
+      
+      // Handle specific status codes
+      if (response.status === 401) {
+        errorMessage = 'Your session has expired. Please log in again.';
+        removeToken();
+        // Optionally redirect to login page
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
+      } else if (response.status === 403) {
+        errorMessage = 'You do not have permission to perform this action';
+      } else if (response.status === 404) {
+        errorMessage = 'The requested resource was not found';
+      } else if (response.status >= 500) {
+        errorMessage = 'A server error occurred. Please try again later.';
+      }
+    } else if (error.code === 'ECONNABORTED') {
+      errorMessage = 'Request timeout. Please check your connection and try again.';
+    } else if (error.message === 'Network Error') {
+      errorMessage = 'Network error. Please check your internet connection.';
     }
-
-    // Extract and standardize error messages
-    const errorMessage = error.response?.data?.message ||
-      error.response?.data?.error ||
-      error.message ||
-      'An unexpected error occurred';
 
     // Log error for debugging
     console.error('API Error:', {
-      status: error.response?.status,
+      status: response?.status,
       message: errorMessage,
       url: error.config?.url,
+      error: error.message,
     });
 
     // Return standardized error object
     return Promise.reject({
-      status: error.response?.status,
+      status: response?.status,
       message: errorMessage,
       originalError: error,
-      response: error.response // Include original response for detailed error handling
+      response: response?.data
     });
   }
 );
 
-// Authentication API methods
+/**
+ * Authentication API Service
+ * Handles all authentication-related API calls
+ */
 export const authAPI = {
   /**
-   * Login user
+   * Login user with email and password
    * @param {Object} credentials - User credentials
    * @param {string} credentials.email - User's email
    * @param {string} credentials.password - User's password
    * @returns {Promise<Object>} Response data with token and user info
+   * @throws {Object} Error object with status and message
    */
-  login: async (credentials) => {
+  login: async ({ email, password }) => {
+    if (!email || !password) {
+      throw { status: 400, message: 'Email and password are required' };
+    }
+
     try {
-      const response = await api.post('/auth/login', credentials);
+      const response = await api.post('/auth/login', { email, password });
+      
+      // Handle successful login
       if (response.token) {
         setToken(response.token);
+        return {
+          success: true,
+          token: response.token,
+          user: response.user,
+          redirect: response.redirect
+        };
       }
-      return response;
+      
+      throw new Error('Invalid response from server');
     } catch (error) {
-      console.error('Login error:', error);
-      throw error;
+      const errorMessage = error.response?.data?.error || error.message || 'Login failed';
+      throw { 
+        status: error.response?.status || 500, 
+        message: errorMessage,
+        originalError: error 
+      };
     }
   },
 
@@ -106,111 +151,148 @@ export const authAPI = {
    * Register a new user
    * @param {Object} userData - User registration data
    * @param {string} userData.email - User's email
-   * @param {string} userData.name - User's name
-   * @param {string} userData.password - User's password
+   * @param {string} userData.name - User's full name
+   * @param {string} userData.password - User's password (min 6 chars)
+   * @param {string} [userData.phone_no] - User's phone number
+   * @param {string} [userData.role='user'] - User role (user/mod/admin/ADMIN)
+   * @param {string} [userData.subscription_type='free'] - Subscription type (free/pro/premium)
    * @returns {Promise<Object>} Response data with token and user info
+   * @throws {Object} Error object with status and message
    */
   register: async (userData) => {
+    const { email, name, password } = userData;
+    
+    if (!email || !name || !password) {
+      throw { status: 400, message: 'Email, name, and password are required' };
+    }
+    
+    if (password.length < 6) {
+      throw { status: 400, message: 'Password must be at least 6 characters' };
+    }
+
     try {
-      const response = await api.post('/auth/register', userData);
+      const response = await api.post('/auth/register', {
+        email,
+        name,
+        password,
+        phone_no: userData.phone_no || '',
+        role: userData.role || 'user',
+        subscription_type: userData.subscription_type || 'free'
+      });
+
+      // Handle successful registration
       if (response.token) {
         setToken(response.token);
+        return {
+          success: true,
+          message: 'Registration successful',
+          token: response.token,
+          user: response.user
+        };
       }
-      return response;
+      
+      throw new Error('Invalid response from server');
     } catch (error) {
-      console.error('Registration error:', error);
-      throw error;
+      const errorMessage = error.response?.data?.error || error.message || 'Registration failed';
+      throw { 
+        status: error.response?.status || 500, 
+        message: errorMessage,
+        originalError: error 
+      };
     }
   },
 
   /**
-   * Logout user
-   * @returns {Promise<void>}
+   * Logout user by removing the authentication token
+   * @returns {Promise<boolean>} True if logout was successful
    */
   logout: async () => {
     try {
+      // Call the logout endpoint if it exists
       await api.post('/auth/logout');
     } catch (error) {
-      console.error('Logout error:', error);
+      console.warn('Logout endpoint failed, proceeding with client-side logout', error);
     } finally {
+      // Always remove the token from client-side storage
       removeToken();
+      return true;
     }
   },
 
   /**
-   * Get current user profile
+   * Get the currently authenticated user's profile
    * @returns {Promise<Object>} User profile data
+   * @throws {Object} Error object with status and message
    */
   getProfile: async () => {
     try {
       const response = await api.get('/api/user/me');
-      console.log('getProfile API response:', response);
       
-      // Handle different possible response structures
-      if (response.user) {
-        return response.user; // Return user object directly
-      } else if (response.data?.user) {
-        return response.data.user;
-      } else if (response.data) {
-        return response.data;
-      } else {
-        return response; // Return entire response if structure is unexpected
+      // Handle different response structures
+      const userData = response.user || response.data?.user || response.data || response;
+      
+      if (!userData) {
+        throw new Error('No user data received');
       }
+      
+      return userData;
     } catch (error) {
       console.error('Error fetching user profile:', error);
-      throw error;
+      
+      // Clear token if unauthorized
+      if (error.response?.status === 401) {
+        removeToken();
+      }
+      
+      throw { 
+        status: error.response?.status || 500, 
+        message: error.response?.data?.error || 'Failed to fetch user profile',
+        originalError: error 
+      };
     }
   },
 
   /**
-   * Refresh authentication token
-   * @returns {Promise<Object>} New token data
+   * Check if the user is authenticated
+   * @returns {Promise<boolean>} True if authenticated, false otherwise
    */
-  refreshToken: async () => {
+  isAuthenticated: async () => {
+    const token = getToken();
+    if (!token) return false;
+    
     try {
-      const response = await api.post('/auth/refresh');
-      if (response.token) {
-        setToken(response.token);
-      }
-      return response;
+      // If we have a token, verify it's still valid by making a profile request
+      await authAPI.getProfile();
+      return true;
     } catch (error) {
-      console.error('Token refresh error:', error);
-      removeToken();
-      throw error;
+      return false;
     }
-  },
+  }
 };
 
 /**
- * User API methods
+ * User API Service
+ * Handles all user-related API calls
  */
 export const userAPI = {
   /**
-   * Update current user profile
-   * @param {Object} userData - Updated user data
+   * Update current user's profile
+   * @param {Object} userData - User data to update
    * @param {string} [userData.name] - Updated name
    * @param {string} [userData.bio] - Updated bio
    * @param {string} [userData.phone_no] - Updated phone number
-   * @param {string} [userData.image_url] - Updated profile image URL
-   * @returns {Promise<Object>} Update result
+   * @returns {Promise<Object>} Updated user data
    */
   updateProfile: async (userData) => {
     try {
-      console.log('Updating profile with data:', userData);
       const response = await api.put('/api/user/update', userData);
-      console.log('Profile update API response:', response);
-      
-      // Handle different possible response structures
-      if (response.user) {
-        return { user: response.user };
-      } else if (response.data?.user) {
-        return { user: response.data.user };
-      } else {
-        return response;
-      }
+      return response.user || response.data?.user || response;
     } catch (error) {
-      console.error('Error updating profile:', error);
-      throw error;
+      throw {
+        status: error.response?.status || 500,
+        message: error.response?.data?.error || 'Failed to update profile',
+        originalError: error
+      };
     }
   },
 
@@ -221,11 +303,14 @@ export const userAPI = {
    */
   getUser: async (userId) => {
     try {
-      const response = await api.get(`/api/users/${userId}`);
-      return response.user || response;
+      const response = await api.get(`/api/user/${userId}`);
+      return response.user || response.data?.user || response;
     } catch (error) {
-      console.error(`Error fetching user ${userId}:`, error);
-      throw error;
+      throw {
+        status: error.response?.status || 500,
+        message: error.response?.data?.error || 'Failed to fetch user',
+        originalError: error
+      };
     }
   },
 
@@ -236,10 +321,14 @@ export const userAPI = {
   getGlowUsers: async () => {
     try {
       const response = await api.get('/api/user/glow');
+      
       return response.users || [];
     } catch (error) {
-      console.error('Error fetching glow users:', error);
-      throw error;
+      throw {
+        status: error.response?.status || 500,
+        message: error.response?.data?.error || 'Failed to fetch glow users',
+        originalError: error
+      };
     }
   },
 
@@ -253,38 +342,160 @@ export const userAPI = {
       const response = await api.put('/api/user/glow', { glow_mode: glowMode });
       return response;
     } catch (error) {
-      console.error('Error updating glow mode:', error);
-      throw error;
+      throw {
+        status: error.response?.status || 500,
+        message: error.response?.data?.error || 'Failed to update glow mode',
+        originalError: error
+      };
     }
   },
+
+  /**
+   * Upload profile picture
+   * @param {File} file - Image file to upload
+   * @returns {Promise<Object>} Upload result with image URL
+   */
+  uploadProfilePicture: async (file) => {
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      
+      const response = await api.post('/api/user/upload-profile-picture', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
+      return response;
+    } catch (error) {
+      throw {
+        status: error.response?.status || 500,
+        message: error.response?.data?.error || 'Failed to upload profile picture',
+        originalError: error
+      };
+    }
+  }
 };
 
-// Events API methods
+/**
+ * Events API Service
+ * Handles all event-related API calls
+ */
 export const eventsAPI = {
-  // Get all events
+  /**
+   * Get all events with optional filters
+   * @param {Object} [params] - Query parameters
+   * @param {string} [params.status] - Filter by status (upcoming, past, ongoing)
+   * @param {number} [params.limit] - Limit number of results
+   * @param {number} [params.offset] - Offset for pagination
+   * @returns {Promise<Array>} List of events
+   */
   getEvents: async (params = {}) => {
-    return await api.get('/events', { params });
+    try {
+      const response = await api.get('/api/events', { params });
+      return response.events || response.data?.events || [];
+    } catch (error) {
+      throw {
+        status: error.response?.status || 500,
+        message: error.response?.data?.error || 'Failed to fetch events',
+        originalError: error
+      };
+    }
   },
-
-  // Get single event
+  
+  /**
+   * Get single event by ID
+   * @param {string} eventId - Event ID
+   * @returns {Promise<Object>} Event details
+   */
   getEvent: async (eventId) => {
-    return await api.get(`/events/${eventId}`);
+    try {
+      const response = await api.get(`/api/events/${eventId}`);
+      return response.event || response.data?.event || response;
+    } catch (error) {
+      throw {
+        status: error.response?.status || 500,
+        message: error.response?.data?.error || 'Failed to fetch event',
+        originalError: error
+      };
+    }
   },
-
-  // Create new event
+  
+  /**
+   * Create a new event
+   * @param {Object} eventData - Event data
+   * @returns {Promise<Object>} Created event
+   */
   createEvent: async (eventData) => {
-    return await api.post('/events', eventData);
+    try {
+      const response = await api.post('/api/events', eventData);
+      return response.event || response.data?.event || response;
+    } catch (error) {
+      throw {
+        status: error.response?.status || 500,
+        message: error.response?.data?.error || 'Failed to create event',
+        originalError: error,
+        validationErrors: error.response?.data?.errors
+      };
+    }
   },
-
-  // Update event
+  
+  /**
+   * Update an existing event
+   * @param {string} eventId - Event ID
+   * @param {Object} eventData - Updated event data
+   * @returns {Promise<Object>} Updated event
+   */
   updateEvent: async (eventId, eventData) => {
-    return await api.put(`/events/${eventId}`, eventData);
+    try {
+      const response = await api.put(`/api/events/${eventId}`, eventData);
+      return response.event || response.data?.event || response;
+    } catch (error) {
+      throw {
+        status: error.response?.status || 500,
+        message: error.response?.data?.error || 'Failed to update event',
+        originalError: error,
+        validationErrors: error.response?.data?.errors
+      };
+    }
   },
-
-  // Delete event
+  
+  /**
+   * Delete an event
+   * @param {string} eventId - Event ID to delete
+   * @returns {Promise<Object>} Deletion result
+   */
   deleteEvent: async (eventId) => {
-    return await api.delete(`/events/${eventId}`);
+    try {
+      const response = await api.delete(`/api/events/${eventId}`);
+      return { success: true, ...response };
+    } catch (error) {
+      throw {
+        status: error.response?.status || 500,
+        message: error.response?.data?.error || 'Failed to delete event',
+        originalError: error
+      };
+    }
   },
+  
+  /**
+   * RSVP to an event
+   * @param {string} eventId - Event ID
+   * @param {string} status - RSVP status (going, maybe, not_going)
+   * @returns {Promise<Object>} RSVP result
+   */
+  rsvpToEvent: async (eventId, status) => {
+    try {
+      const response = await api.post(`/api/events/${eventId}/rsvp`, { status });
+      return response;
+    } catch (error) {
+      throw {
+        status: error.response?.status || 500,
+        message: error.response?.data?.error || 'Failed to update RSVP',
+        originalError: error
+      };
+    }
+  }
 };
 
 // Export the configured axios instance for direct use if needed

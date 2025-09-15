@@ -51,7 +51,7 @@ function PlanDetailCard({ plan, onClose, onApproach, onChat, join, onJoin }) {
             />
             {/* Name */}
             <div className=" relative left-[120px] bottom-[60px] flex items-center text-stone-900 text-xl text-nowrap">
-              <span>{plan.name || 'Selmon Bhai'}</span>
+              <span>{plan.host.name || 'Annynomous'}</span>
             </div>
           </div>
         </div>
@@ -68,11 +68,11 @@ function PlanDetailCard({ plan, onClose, onApproach, onChat, join, onJoin }) {
             <h3 className="text-xl text-[#1c1c1c] mt-6 mb-2 flex justify-start items-center font-semibold"><BsFilm className="w-5 h-5 mr-3" />{plan.subtitle}</h3>
             <div className="flex items-center text-[#1c1c1c] opacity-60">
               <BsClock className="w-5 h-5 mr-3 " />
-              <span>{plan.time}</span>
+              <span>{plan.start_time}</span>
             </div>
             <div className=" text-[#1c1c1c] flex items-center gap-1">
               <span role="img" aria-label="place">📍</span>
-              <span className='opacity-60 text-sm'>{plan.location}</span>
+              <span className='opacity-60 text-sm'>{plan.address}</span>
             </div>
           </div>
 

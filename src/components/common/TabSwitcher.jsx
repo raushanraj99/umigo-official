@@ -2,6 +2,8 @@ import React from 'react';
 
 function TabSwitcher({ active = 'Plans', onChange, showSpotlight = false }) {
   const tabs = showSpotlight ? ['Plans', 'Spotlight'] : ['Plans'];
+  // Normalize tab names for comparison
+  const normalizeTab = (tab) => tab?.toLowerCase();
   // Calculate width class based on whether spotlight is shown
   const containerClass = showSpotlight 
     ? "flex gap-3 bg-white p-1 rounded-xl sm:border sm:border-[#fff]/20 w-[360px] max-[380px]:w-auto"
@@ -10,7 +12,7 @@ function TabSwitcher({ active = 'Plans', onChange, showSpotlight = false }) {
   return (
     <div className={containerClass}>
       {tabs.map((tab) => {
-        const isActive = active === tab;
+        const isActive = normalizeTab(active) === normalizeTab(tab);
         return (
           <button
             key={tab}

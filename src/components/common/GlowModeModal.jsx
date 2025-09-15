@@ -67,11 +67,10 @@ const GlowModeModal = ({ isOpen, onClose, onSave, setGlowEnabled }) => {
       // Call save logic directly to avoid circular dependency
       if (validateForm()) {
         onSave(formData);
-        setGlowEnabled(true);
         onClose();
       }
     }
-  }, [formData, onSave, setGlowEnabled, onClose]);
+  }, [formData, onSave, onClose]);
 
   // Add/remove event listeners
   useEffect(() => {
@@ -116,17 +115,23 @@ const GlowModeModal = ({ isOpen, onClose, onSave, setGlowEnabled }) => {
     return isValid;
   };
 
-  const handleSave = useCallback((e) => {
+  const handleSave = useCallback(async (e) => {
     if (e) e.preventDefault();
     
     if (!validateForm()) {
       return;
     }
     
-    onSave(formData);
-    setGlowEnabled(true);
-    onClose();
-  }, [formData, onSave, setGlowEnabled, onClose]);
+    try {
+      const success = await onSave(formData);
+      if (success) {
+        onClose();
+      }
+    } catch (error) {
+      console.error('Error saving glow mode settings:', error);
+      setErrors({ submit: 'Failed to save settings. Please try again.' });
+    }
+  }, [formData, onSave, onClose]);
 
   if (!isOpen) return null;
 

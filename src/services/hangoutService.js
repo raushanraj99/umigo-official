@@ -101,12 +101,26 @@ const hangoutService = {
             .join('&');
         }
       });
-      console.log("hangout response data:", response);
-      return response;
+      
+      // Ensure we always return a consistent structure
+      if (response && response) {
+        return response;
+      }
+      
+      return { hangouts: [], total: 0, limit: safeFilters.limit, offset: safeFilters.offset || 0, hasMore: false };
       
     } catch (error) {
       console.error('Error fetching hangouts:', error);
-      throw error.response?.data || error;
+      
+      // Return empty results on error to prevent UI breaking
+      return { 
+        hangouts: [], 
+        total: 0, 
+        limit: filters.limit || 20, 
+        offset: filters.offset || 0, 
+        hasMore: false,
+        error: error.response?.data?.message || 'Failed to fetch hangouts'
+      };
     }
   },
 
@@ -137,7 +151,7 @@ const hangoutService = {
         ...hangoutData,
         tags: Array.isArray(hangoutData.tags) ? hangoutData.tags : []
       });
-      console.log("hangout response data:", response);
+      
       return response.data;
     } catch (error) {
       console.error('Error creating hangout:', error);
@@ -157,7 +171,8 @@ const hangoutService = {
       }
 
       const response = await api.get(`/api/hangouts/${hangoutId}`);
-      return response.data;
+      console.log("hangout response data:", response);
+      return response;
     } catch (error) {
       console.error('Error fetching hangout details:', error);
       throw error.response?.data || error;
@@ -179,8 +194,16 @@ const hangoutService = {
       if (!hangoutId) {
         throw new Error('Hangout ID is required');
       }
+      
+      const newData = {
+        title: updateData.title,
+        description: updateData.description,
+        status: updateData.status,
+        max_participants: updateData.max_participants
+      };
+   
+      const response = await api.put(`/api/hangouts/${hangoutId}`, newData);
 
-      const response = await api.put(`/api/hangouts/${hangoutId}`, updateData);
       return response.data;
     } catch (error) {
       console.error('Error updating hangout:', error);
