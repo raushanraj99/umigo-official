@@ -22,7 +22,14 @@ const AppRoutes = () => (
        <GlowMode />
    </ProtectedRoute>
     } /> */}
-    <Route path="/chat" element={<Chat />} />
+    <Route
+      path="/chat"
+      element={
+        <ProtectedRoute>
+          <Chat />
+        </ProtectedRoute>
+      }
+    />{" "}
     <Route path="/about" element={<AboutUs />} />
     <Route path="/features" element={<Features />} />
     <Route path="/events" element={<Events />} />
@@ -31,11 +38,14 @@ const AppRoutes = () => (
     <Route path="/login" element={<Login />} />
     <Route path="/reset-password" element={<ResetPassword />} />
     {/* <Route path="/profile" element={<Profile />} /> */}
-    <Route path="/profile" element={
-      <ProtectedRoute>
-        <Profile />
-      </ProtectedRoute>
-    } />
+    <Route
+      path="/profile"
+      element={
+        <ProtectedRoute>
+          <Profile />
+        </ProtectedRoute>
+      }
+    />
   </Routes>
 );
 
