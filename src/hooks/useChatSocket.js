@@ -18,7 +18,7 @@ export default function useChatSocket({ onMessage }) {
   const wsRef = useRef(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('jwtToken');
+    const token = localStorage.getItem('Token_key');
     if (!token) return;
 
     const base = (import.meta.env.VITE_API_URL || 'http://localhost:8080')

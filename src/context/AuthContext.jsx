@@ -21,6 +21,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       const token = getToken();
+      console.log("Auth context token : ",token?"token exists":"token does not exist")
       if (token) {
         try {
           const userData = await authAPI.getProfile();

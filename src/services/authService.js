@@ -124,7 +124,7 @@ export const authAPI = {
 
     try {
       const response = await api.post('/auth/login', { email, password });
-      
+      console.log("response login : ",response)
       // Handle successful login
       if (response.token) {
         setToken(response.token);

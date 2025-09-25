@@ -13,147 +13,26 @@ import {useHangout} from '../context/HangoutContext';
 
 
 
-const sampleUsers = [
-  { name: 'Mia', time: '4:00 PM', location: 'Central Park', avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=400&auto=format&fit=crop', note: 'Open to anything!' },
-  { name: 'Jia', time: '7:00 PM', location: 'PVR Cinepolis', avatarUrl: 'https://images.unsplash.com/photo-1544006659-f0b21884ce1d?q=80&w=400&auto=format&fit=crop' },
-  { name: 'Sia', time: '11:00 PM', location: 'Lighthouse cafe', avatarUrl: 'https://images.unsplash.com/photo-1544005316-04ae31d94a29?q=80&w=400&auto=format&fit=crop' },
-  { name: 'Aarav', time: '6:30 PM', location: 'Marine Drive', avatarUrl: 'https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?q=80&w=400&auto=format&fit=crop' },
-  { name: 'Isha', time: '5:00 PM', location: 'Kala Ghoda', avatarUrl: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=400&auto=format&fit=crop' },
-  { name: 'Kabir', time: '8:30 PM', location: 'Bandra Fort', avatarUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=400&auto=format&fit=crop' },
-  { name: 'Tara', time: '3:00 PM', location: 'Jio World Drive', avatarUrl: 'https://images.unsplash.com/photo-1544005316-04ae31d94a29?q=80&w=400&auto=format&fit=crop' },
-  { name: 'Rohit', time: '9:00 PM', location: 'Carter Road', avatarUrl: 'https://images.unsplash.com/photo-1527980965255-d3b416303d12?q=80&w=400&auto=format&fit=crop' },
-  { name: 'Neel', time: '1:00 PM', location: 'Powai Lake', avatarUrl: 'https://images.unsplash.com/photo-1527980965255-d3b416303d12?q=80&w=400&auto=format&fit=crop' },
-  { name: 'Pooja', time: '2:30 PM', location: 'Phoenix Marketcity', avatarUrl: 'https://images.unsplash.com/photo-1524502397800-2eeaad7c3fe5?q=80&w=400&auto=format&fit=crop' },
-  { name: 'Arnav', time: '7:45 PM', location: 'Versova', avatarUrl: 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?q=80&w=400&auto=format&fit=crop' },
-  { name: 'Kriti', time: '10:30 AM', location: 'Prithvi Cafe', avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=400&auto=format&fit=crop' },
-  { name: 'Zara', time: '6:00 PM', location: 'Colaba Causeway', avatarUrl: 'https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=400&auto=format&fit=crop' },
-  { name: 'Dev', time: '4:15 PM', location: 'High Street Phoenix', avatarUrl: 'https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?q=80&w=400&auto=format&fit=crop' },
-  { name: 'Nisha', time: '8:00 PM', location: 'Juhu Beach', avatarUrl: 'https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=400&auto=format&fit=crop' },
-  { name: 'Vihaan', time: '12:30 PM', location: 'Haji Ali', avatarUrl: 'https://images.unsplash.com/photo-1527980965255-d3b416303d12?q=80&w=400&auto=format&fit=crop' },
-  { name: 'Anika', time: '3:45 PM', location: 'Phoenix Palladium', avatarUrl: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=400&auto=format&fit=crop' }
-];
-
-// const samplePlans = [
-//   {
-//     name: 'Rahul Verma',
-//     subtitle: 'Weekend Trek',
-//     time: '6:00 AM Tomorrow',
-//     location: 'Lohagad Fort',
-//     bannerImage: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1200&auto=format&fit=crop',
-//     avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200&auto=format&fit=crop'
-//   },
-//   {
-//     name: 'Priya Patel',
-//     subtitle: 'Brunch Meetup',
-//     time: '11:00 AM Tomorrow',
-//     location: 'The Bombay Canteen',
-//     bannerImage: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1200&auto=format&fit=crop',
-//     avatarUrl: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?q=80&w=200&auto=format&fit=crop'
-//   },
-//   {
-//     name: 'Aryan Khanna',
-//     subtitle: 'Cricket Match',
-//     time: '4:00 PM Tomorrow',
-//     location: 'Cross Maidan',
-//     bannerImage: 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?q=80&w=1200&auto=format&fit=crop',
-//     avatarUrl: 'https://images.unsplash.com/photo-1566492031773-4f4e44671857?q=80&w=200&auto=format&fit=crop'
-//   },
-//   {
-//     name: 'Neha Gupta',
-//     subtitle: 'Art Exhibition',
-//     time: '3:00 PM Today',
-//     location: 'Jehangir Art Gallery',
-//     bannerImage: 'https://images.unsplash.com/photo-1536922246289-88c42f957773?q=80&w=1200&auto=format&fit=crop',
-//     avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=200&auto=format&fit=crop'
-//   },
-//   {
-//     name: 'Vikram Joshi',
-//     subtitle: 'Tech Meetup',
-//     time: '6:30 PM Today',
-//     location: 'WeWork Galaxy',
-//     bannerImage: 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?q=80&w=1200&auto=format&fit=crop',
-//     avatarUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=400&auto=format&fit=crop'
-//   },
-//   {
-//     name: 'Ananya Reddy',
-//     subtitle: 'Yoga Session',
-//     time: '7:00 AM Tomorrow',
-//     location: 'Hanging Gardens',
-//     bannerImage: 'https://images.unsplash.com/photo-1545205597-3d9d02c29597?q=80&w=1200&auto=format&fit=crop',
-//     avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=200&auto=format&fit=crop'
-//   },
-//   {
-//     name: 'Karan Malhotra',
-//     subtitle: 'Standup Comedy',
-//     time: '8:00 PM Today',
-//     location: 'The Habitat',
-//     bannerImage: 'https://images.unsplash.com/photo-1541194578297-9c8eaf0d832a?q=80&w=1200&auto=format&fit=crop',
-//     avatarUrl: 'https://images.unsplash.com/photo-1542345812-d98b5cd6cf98?q=80&w=200&auto=format&fit=crop'
-//   },
-//   {
-//     name: 'Meera Iyer',
-//     subtitle: 'Book Reading',
-//     time: '5:00 PM Tomorrow',
-//     location: 'Kitab Khana',
-//     bannerImage: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=1200&auto=format&fit=crop',
-//     avatarUrl: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?q=80&w=200&auto=format&fit=crop'
-//   },
-//   {
-//     name: 'Arjun Kapoor',
-//     subtitle: 'Gaming Tournament',
-//     time: '2:00 PM Tomorrow',
-//     location: 'Smaaash, Lower Parel',
-//     bannerImage: 'https://images.unsplash.com/photo-1493711662062-fa541adb3fc8?q=80&w=1200&auto=format&fit=crop',
-//     avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop'
-//   },
-//   {
-//     name: 'Zoya Khan',
-//     subtitle: 'Beach Cleanup',
-//     time: '8:00 AM Tomorrow',
-//     location: 'Juhu Beach',
-//     bannerImage: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1200&auto=format&fit=crop',
-//     avatarUrl: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=200&auto=format&fit=crop'
-//   }, {
-//     name: 'Riya Mehta',
-//     subtitle: 'Karaoke Night',
-//     time: '9:00 PM Today',
-//     location: 'Hard Rock Cafe, Andheri',
-//     bannerImage: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a5d4?q=80&w=1200&auto=format&fit=crop',
-//     avatarUrl: 'https://images.unsplash.com/photo-1524502397800-2eeaad7c3fe5?q=80&w=200&auto=format&fit=crop'
-//   },
-//   {
-//     name: 'Aditya Rao',
-//     subtitle: 'Pool Party',
-//     time: '12:00 PM Tomorrow',
-//     location: 'Club Aquaria, Bandra',
-//     bannerImage: 'https://images.unsplash.com/photo-1530549387789-4c1017266635?q=80&w=1200&auto=format&fit=crop',
-//     avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop'
-//   },
-//   {
-//     name: 'Nandini Desai',
-//     subtitle: 'Coffee & Conversations',
-//     time: '4:30 PM Today',
-//     location: 'Blue Tokai, Colaba',
-//     bannerImage: 'https://images.unsplash.com/photo-1445116572660-236099ec97a0?q=80&w=1200&auto=format&fit=crop',
-//     avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200&auto=format&fit=crop'
-//   },
-//   {
-//     name: 'Rohan Seth',
-//     subtitle: 'Basketball Match',
-//     time: '6:00 PM Tomorrow',
-//     location: 'St. Xavier\'s College Court',
-//     bannerImage: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?q=80&w=1200&auto=format&fit=crop',
-//     avatarUrl: 'https://images.unsplash.com/photo-1568602471122-7832951cc4c5?q=80&w=200&auto=format&fit=crop'
-//   },
-//   {
-//     name: 'Ishita Kapoor',
-//     subtitle: 'Flea Market Shopping',
-//     time: '10:00 AM Tomorrow',
-//     location: 'Colaba Causeway',
-//     bannerImage: 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?q=80&w=1200&auto=format&fit=crop',
-//     avatarUrl: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?q=80&w=200&auto=format&fit=crop'
-//   }
+// const sampleUsers = [
+//   { name: 'Mia', time: '4:00 PM', location: 'Central Park', avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=400&auto=format&fit=crop', note: 'Open to anything!' },
+//   { name: 'Jia', time: '7:00 PM', location: 'PVR Cinepolis', avatarUrl: 'https://images.unsplash.com/photo-1544006659-f0b21884ce1d?q=80&w=400&auto=format&fit=crop' },
+//   { name: 'Sia', time: '11:00 PM', location: 'Lighthouse cafe', avatarUrl: 'https://images.unsplash.com/photo-1544005316-04ae31d94a29?q=80&w=400&auto=format&fit=crop' },
+//   { name: 'Aarav', time: '6:30 PM', location: 'Marine Drive', avatarUrl: 'https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?q=80&w=400&auto=format&fit=crop' },
+//   { name: 'Isha', time: '5:00 PM', location: 'Kala Ghoda', avatarUrl: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=400&auto=format&fit=crop' },
+//   { name: 'Kabir', time: '8:30 PM', location: 'Bandra Fort', avatarUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=400&auto=format&fit=crop' },
+//   { name: 'Tara', time: '3:00 PM', location: 'Jio World Drive', avatarUrl: 'https://images.unsplash.com/photo-1544005316-04ae31d94a29?q=80&w=400&auto=format&fit=crop' },
+//   { name: 'Rohit', time: '9:00 PM', location: 'Carter Road', avatarUrl: 'https://images.unsplash.com/photo-1527980965255-d3b416303d12?q=80&w=400&auto=format&fit=crop' },
+//   { name: 'Neel', time: '1:00 PM', location: 'Powai Lake', avatarUrl: 'https://images.unsplash.com/photo-1527980965255-d3b416303d12?q=80&w=400&auto=format&fit=crop' },
+//   { name: 'Pooja', time: '2:30 PM', location: 'Phoenix Marketcity', avatarUrl: 'https://images.unsplash.com/photo-1524502397800-2eeaad7c3fe5?q=80&w=400&auto=format&fit=crop' },
+//   { name: 'Arnav', time: '7:45 PM', location: 'Versova', avatarUrl: 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?q=80&w=400&auto=format&fit=crop' },
+//   { name: 'Kriti', time: '10:30 AM', location: 'Prithvi Cafe', avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=400&auto=format&fit=crop' },
+//   { name: 'Zara', time: '6:00 PM', location: 'Colaba Causeway', avatarUrl: 'https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=400&auto=format&fit=crop' },
+//   { name: 'Dev', time: '4:15 PM', location: 'High Street Phoenix', avatarUrl: 'https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?q=80&w=400&auto=format&fit=crop' },
+//   { name: 'Nisha', time: '8:00 PM', location: 'Juhu Beach', avatarUrl: 'https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=400&auto=format&fit=crop' },
+//   { name: 'Vihaan', time: '12:30 PM', location: 'Haji Ali', avatarUrl: 'https://images.unsplash.com/photo-1527980965255-d3b416303d12?q=80&w=400&auto=format&fit=crop' },
+//   { name: 'Anika', time: '3:45 PM', location: 'Phoenix Palladium', avatarUrl: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=400&auto=format&fit=crop' }
 // ];
+
 
 function Landing() {
   const ITEMS_PER_PAGE = 9;
@@ -170,6 +49,7 @@ function Landing() {
   const [error, setError] = useState(null);
   const [joinedPlans, setJoinedPlans] = useState({});
   const [approachPeople, setApproachPeople] = useState({});
+  const [sampleUsers, setSampleUsers] = useState([]);
   
   // Handle joining a plan
   const handleJoin = useCallback((planId) => {
@@ -179,7 +59,7 @@ function Landing() {
     }));
     toast.success('Join request sent!');
   }, []);
-  console.log("glowUsers : ",glowUsers)
+  
   // Set initial tab
   useEffect(() => {
     const fetchHangouts = async () => {
@@ -188,7 +68,6 @@ function Landing() {
       
       try {
         const response = await getHangouts({ status: 'active' });
-        
         // If there was an error in the response but we still got a response object
         if (response.error) {
           console.error('Error in hangouts response:', response.error);
@@ -243,9 +122,14 @@ function Landing() {
       setGlowMode(newGlowState);
       // Switch to Spotlight only if glow mode is enabled and we're not already on Spotlight
       if (newGlowState && activeTab !== 'Spotlight') {
+        setSampleUsers(glowUsers);
         setActiveTab('Spotlight');
+        // sampleUsers = glowUsers;
+        console.log('Glow users:', glowUsers);
+        console.log('Sample users:', sampleUsers);
       } else if (!newGlowState && activeTab === 'Spotlight') {
         // If glow mode is turned off and we're on Spotlight, switch to Plans
+        setSampleUsers([]);
         setActiveTab('Plans');
       }
     };
@@ -255,6 +139,15 @@ function Landing() {
       window.removeEventListener('glowModeChange', handleGlowModeChange);
     };
   }, [setGlowMode, activeTab]);
+
+ 
+  useEffect(() => {
+    if (glowEnabled) {
+      setSampleUsers(Array.isArray(glowUsers) ? glowUsers : []);
+    } else {
+      setSampleUsers([]);
+    }
+  }, [glowEnabled, glowUsers]);
 
   useEffect(() => {
     // Start transition when tab changes
@@ -270,8 +163,8 @@ function Landing() {
 
   // Filter spotlight users by name
   const filteredSpotlight = React.useMemo(() =>
-    sampleUsers.filter(u => u.name.toLowerCase().includes(query.toLowerCase())),
-    [query]
+    sampleUsers.filter(u => (u?.name || '').toLowerCase().includes(query.toLowerCase())),
+    [query, sampleUsers]
   );
 
   // Filter plans by name
@@ -295,7 +188,6 @@ function Landing() {
     () => filteredSpotlight.slice(0, itemsToShow),
     [filteredSpotlight, itemsToShow]
   );
-
   // Load more items
   const loadMore = useCallback(() => {
     setItemsToShow(prev => prev + ITEMS_PER_PAGE);
@@ -404,9 +296,9 @@ function Landing() {
                       />
                     </div>
                   ))
-                  : currentSpotlight.map((user) => (
+                  : currentSpotlight.map((user, idx) => (
                     <div
-                      key={`${user.name}-${user.time}`}
+                      key={user.id || user._id || `${user.name || 'user'}-${user.time || user.location || 'na'}-${idx}`}
                       className={`rounded-lg overflow-hidden transition-all duration-300 ease-out ${isTransitioning
                         ? 'opacity-0 translate-y-4 scale-95'
                         : 'opacity-100 translate-y-0 scale-100'

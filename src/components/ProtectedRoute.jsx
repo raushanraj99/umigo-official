@@ -7,9 +7,10 @@ const ProtectedRoute = ({ children }) => {
   const location = useLocation();
   const [token, setToken] = useState('');
   useEffect(() => {
-     const getToken = JSON.parse(localStorage.getItem(''))
+     const getToken = JSON.parse(localStorage.getItem('token'))
+    //  setToken(getToken);
   }, [])
-
+  console.log("isAuthenticated protected  : ",isAuthenticated)
   // Show loading spinner while checking authentication
   if (isLoading) {
     return (

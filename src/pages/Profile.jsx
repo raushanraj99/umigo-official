@@ -5,7 +5,7 @@ import { authAPI } from "../services/authService";
 import { FaUser, FaCalendar, FaMapMarkerAlt, FaClock, FaEllipsisV, FaCheck, FaTimes, FaComment, FaHourglass, FaWalking, FaShoppingBag } from 'react-icons/fa';
 import hangoutService from '../services/hangoutService';
 import { toast } from 'react-toastify';
-import { FaClapperboard } from "react-icons/fa6";
+
 import LocationSelector from "./components/LocationSelector";
 import MyEditProfile from "../components/profile/MyEditProfile";
 import PlanSection from "../components/profile/PlansSection"
@@ -61,7 +61,7 @@ const Profile = () => {
       const userInfo = await authAPI.getProfile();
       
       if (isMounted) {
-        // console.log("User profile response:", userInfo);
+
         // The authAPI.getProfile() now returns response.user directly
         setCurrentUser(userInfo || null);
       }
