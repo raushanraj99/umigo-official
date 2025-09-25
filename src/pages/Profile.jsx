@@ -59,6 +59,7 @@ const Profile = () => {
       setProfileError(null);
     
       const userInfo = await authAPI.getProfile();
+      console.log("user info : ",userInfo)
       
       if (isMounted) {
 

@@ -227,6 +227,7 @@ export const authAPI = {
    */
   getProfile: async () => {
     const token = getToken()
+
     try {
       const decoded = jwtDecode(token)
 
@@ -237,12 +238,21 @@ export const authAPI = {
       }
 
       const userData = decoded;
-      console.log("decoded data: ",decoded)
-
+      
       if (!userData) {
         throw new Error('No user data received');
       }
-      
+
+      try{
+        const userInfo = await api.get('/api/user/me');
+          userData.name = userInfo.user.name;
+          userData.created_at = userInfo.user.created_at;
+          userData.phone = userInfo.user.phone_no;
+      }catch(error){
+        console.log("error : ",error)
+      }
+     
+      console.log("user data : ",userData)
       return userData;
     } catch (error) {
       console.error('Error fetching user profile:', error);
