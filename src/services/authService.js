@@ -1,4 +1,5 @@
 import axios from 'axios';
+import {jwtDecode} from "jwt-decode";
 
 // Create Axios instance with base URL from environment variables
 const api = axios.create({
@@ -225,12 +226,19 @@ export const authAPI = {
    * @throws {Object} Error object with status and message
    */
   getProfile: async () => {
+    const token = getToken()
     try {
-      const response = await api.get('/api/user/me');
-      
-      // Handle different response structures
-      const userData = response.user || response.data?.user || response.data || response;
-      
+      const decoded = jwtDecode(token)
+
+      const isExpired = decoded.isExpired * 1000 < Date.now()
+
+      if (isExpired){
+        throw new Error("JWT Token Expired")
+      }
+
+      const userData = decoded;
+      console.log("decoded data: ",decoded)
+
       if (!userData) {
         throw new Error('No user data received');
       }
