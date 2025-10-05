@@ -6,26 +6,36 @@ import { CommonProvider } from "./context/CommonContext";
 import Header from "./components/layout/Header";
 import AppRoutes from "./routes/AppRoutes";
 import "./App.css";
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { HangoutProvider } from './context/HangoutContext';
-
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { HangoutProvider } from "./context/HangoutContext";
+import { subscribeToPushNotifications } from "./hooks/usePushNotifications";
+import { useEffect } from "react";
 
 function App() {
+  useEffect(() => {
+    // Automatically ask for permission on first load
+    subscribeToPushNotifications();
+  }, []);
   return (
     <AuthProvider>
       <CommonProvider>
         <HangoutProvider>
-        <Router>
-          <div className="App min-h-screen w-full bg-[#f9f9f9] text-[#ff5500]">
-            <ToastContainer position="top-center" hideProgressBar theme="light" />
-            <Header />
-            <div>{/* space for bottom nav on mobile */}
-              <AppRoutes />
+          <Router>
+            <div className="App min-h-screen w-full bg-[#f9f9f9] text-[#ff5500]">
+              <ToastContainer
+                position="top-center"
+                hideProgressBar
+                theme="light"
+              />
+              <Header />
+              <div>
+                {/* space for bottom nav on mobile */}
+                <AppRoutes />
+              </div>
             </div>
-          </div>
-        </Router>
-      </HangoutProvider>
+          </Router>
+        </HangoutProvider>
       </CommonProvider>
     </AuthProvider>
   );
