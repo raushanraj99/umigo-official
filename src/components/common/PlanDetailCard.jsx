@@ -1,7 +1,8 @@
 import React from 'react';
 import { IoArrowBack } from 'react-icons/io5';
 import { BsChatDots, BsClock, BsFilm } from 'react-icons/bs';
-import { IoLocation } from 'react-icons/io5';
+// import { IoLocation } from 'react-icons/io5';
+import { NavLink } from 'react-router-dom';
 
 function PlanDetailCard({ plan, onClose, onApproach, onChat, join, onJoin }) {
   if (!plan) return null;
@@ -44,15 +45,19 @@ function PlanDetailCard({ plan, onClose, onApproach, onChat, join, onJoin }) {
 
           {/* Profile Image */}
           <div className="absolute -bottom-16 left-6 w-28 h-28">
+             <NavLink to={`/user/${plan.id}`}>
             <img
               src={plan.avatarUrl || 'https://randomuser.me/api/portraits/men/1.jpg'}
               alt={plan.name}
               className="w-full h-full rounded-full object-cover border-4 border-white shadow-md"
             />
+            </NavLink>
             {/* Name */}
-            <div className=" relative left-[120px] bottom-[60px] flex items-center text-stone-900 text-xl text-nowrap">
-              <span>{plan.host.name || 'Annynomous'}</span>
-            </div>
+            <NavLink to={`/user/${plan.id}`}>
+              <div className=" relative left-[120px] bottom-[60px] flex items-center text-stone-900 text-xl text-nowrap">
+                <span>{plan.host.name || 'Annynomous'}</span>
+              </div>
+            </NavLink>
           </div>
         </div>
 
@@ -65,7 +70,7 @@ function PlanDetailCard({ plan, onClose, onApproach, onChat, join, onJoin }) {
 
           {/* Event Details */}
           <div className="space-y-2 mb-8">
-            <h3 className="text-xl text-[#1c1c1c] mt-6 mb-2 flex justify-start items-center font-semibold"><BsFilm className="w-5 h-5 mr-3" />{plan.subtitle}</h3>
+            <h3 className="text-xl text-nowrap text-[#1c1c1c] mt-6 mb-2 flex justify-start items-center font-semibold"><BsFilm className="w-5 h-5 mr-3" />{plan.subtitle}</h3>
             <div className="flex items-center text-[#1c1c1c] opacity-60">
               <BsClock className="w-5 h-5 mr-3 " />
               <span>{plan.start_time}</span>
@@ -85,8 +90,8 @@ function PlanDetailCard({ plan, onClose, onApproach, onChat, join, onJoin }) {
                 onApproach(e);
               }}
               className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors cursor-pointer ${join
-                  ? 'bg-[#909090] text-white hover:bg-[#575757]'
-                  : 'bg-orange-500 text-white hover:bg-orange-600'
+                ? 'bg-[#909090] text-white hover:bg-[#575757]'
+                : 'bg-orange-500 text-white hover:bg-orange-600'
                 }`}
             >
               {join ? 'Requested' : 'Join'}

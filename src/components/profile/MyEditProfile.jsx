@@ -37,7 +37,7 @@ const MyEditProfile = ({ onClose, onUpdate, currentUser }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!formData.name.trim()) {
       toast.error('Name is required');
       return;
@@ -45,25 +45,25 @@ const MyEditProfile = ({ onClose, onUpdate, currentUser }) => {
 
     setIsLoading(true);
     console.log("Submitting profile update:", formData);
-    
+
     try {
       const response = await userAPI.updateProfile(formData);
       console.log("Profile update response:", response);
-      
+
       toast.success('Profile updated successfully!');
-      
+
       // Pass the updated user data to the parent component
       // The response structure might be different, so handle multiple possibilities
       const updatedUser = response.user || response.data?.user || response;
-      
+
       if (onUpdate && typeof onUpdate === 'function') {
         onUpdate(updatedUser);
       }
-      
+
       onClose();
     } catch (error) {
       console.error('Error updating profile:', error);
-      
+
       let errorMessage = 'Failed to update profile';
       if (error.response?.data?.error) {
         errorMessage = error.response.data.error;
@@ -72,7 +72,7 @@ const MyEditProfile = ({ onClose, onUpdate, currentUser }) => {
       } else if (error.message) {
         errorMessage = error.message;
       }
-      
+
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
@@ -131,40 +131,40 @@ const MyEditProfile = ({ onClose, onUpdate, currentUser }) => {
   const nameFirstLetter = userToDisplay?.name?.charAt(0)?.toUpperCase() || formData.name?.charAt(0)?.toUpperCase() || '?';
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black/40 backdrop-blur-xs bg-opacity-50 flex items-center justify-center z-50 p-4"
       onClick={handleBackdropClick}
     >
-      <div 
+      <div
         className="bg-white rounded-2xl w-full max-w-md overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
-            <div 
-            className='cursor-pointer p-1 rounded-full hover:bg-orange-500 text-black hover:text-white text-2xl font-bold transition-all'
-            onClick={onClose}>
-              <IoArrowBack/>
+            <div
+              className='cursor-pointer p-1 rounded-full hover:bg-orange-500 text-black hover:text-white text-2xl font-bold transition-all'
+              onClick={onClose}>
+              <IoArrowBack />
             </div>
             <h2 className="text-lg font-bold text-gray-900">Edit Profile</h2>
-            <button 
+            <button
               className="text-gray-400 hover:text-gray-600 transition-colors"
               disabled={isLoading}
             >
               {/* <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg> */}
-              <div className='w-8 h-8'/>
+              <div className='w-8 h-8' />
             </button>
           </div>
-          
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="flex items-center justify-center mb-6">
               <div className="relative">
                 {formData.image_url ? (
-                  <img 
-                    src={formData.image_url} 
-                    alt="Profile" 
+                  <img
+                    src={formData.image_url}
+                    alt="Profile"
                     className="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
                     onError={(e) => {
                       e.target.style.display = 'none';
@@ -172,13 +172,13 @@ const MyEditProfile = ({ onClose, onUpdate, currentUser }) => {
                     }}
                   />
                 ) : null}
-                <div 
+                <div
                   className="w-24 h-24 rounded-full border-2 border-gray-200 bg-gray-200 flex items-center justify-center text-2xl font-bold text-gray-600"
                   style={{ display: formData.image_url ? 'none' : 'flex' }}
                 >
                   {nameFirstLetter}
                 </div>
-                <button 
+                <button
                   type="button"
                   className="absolute -bottom-2 -right-2 bg-[#ff5500] text-white rounded-full p-2 hover:bg-[#e64d00] transition-colors disabled:opacity-50"
                   onClick={() => document.getElementById('profileImage').click()}
@@ -189,10 +189,10 @@ const MyEditProfile = ({ onClose, onUpdate, currentUser }) => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
                 </button>
-                <input 
+                <input
                   id="profileImage"
-                  type="file" 
-                  className="hidden" 
+                  type="file"
+                  className="hidden"
                   accept="image/*"
                   onChange={handleImageUpload}
                   disabled={isLoading}
@@ -200,52 +200,56 @@ const MyEditProfile = ({ onClose, onUpdate, currentUser }) => {
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Name <span className="text-red-500">*</span>
-              </label>
+            <div className="relative">
               <input
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ff5500] focus:border-transparent"
-                placeholder="Enter your name"
+                className="w-full px-4 pt-6 pb-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ff5500] focus:border-transparent peer"
+                placeholder=" "
                 required
                 disabled={isLoading}
                 maxLength={50}
               />
+              <label className="absolute left-4 top-4 text-gray-500 transition-all duration-200 peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-focus:top-1.5 peer-focus:text-xs peer-focus:text-[#ff5500] peer-[:not(:placeholder-shown)]:top-1.5 peer-[:not(:placeholder-shown)]:text-xs">
+                Name
+              </label>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Bio</label>
+            <div className="relative">
               <textarea
                 name="bio"
                 value={formData.bio}
                 onChange={handleChange}
                 rows="3"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ff5500] focus:border-transparent resize-none"
-                placeholder="Tell us about yourself..."
+                className="w-full px-4 pt-6 pb-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ff5500] focus:border-transparent resize-none peer"
+                placeholder=" "
                 disabled={isLoading}
                 maxLength={500}
               />
-              <div className="text-xs text-gray-500 mt-1">
-                {formData.bio.length}/500 characters
-              </div>
+              <label className="flex justify-between w-[90%] absolute left-4 top-4 text-gray-500 transition-all duration-200 peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-focus:top-1.5 peer-focus:text-xs peer-focus:text-[#ff5500] peer-[:not(:placeholder-shown)]:top-1.5 peer-[:not(:placeholder-shown)]:text-xs">
+                <span>Bio</span>
+                <div className="text-[9px] text-gray-500 mt-1">
+                  {formData.bio.length}/500 characters
+                </div>
+              </label>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+            <div className="relative">
               <input
                 type="tel"
                 name="phone_no"
                 value={formData.phone_no}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ff5500] focus:border-transparent"
-                placeholder="+1 (123) 456-7890"
+                className="w-full px-4 pt-6 pb-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ff5500] focus:border-transparent peer"
+                placeholder=" "
                 disabled={isLoading}
                 maxLength={20}
               />
+              <label className="absolute left-4 top-4 text-gray-500 transition-all duration-200 peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-focus:top-1.5 peer-focus:text-xs peer-focus:text-[#ff5500] peer-[:not(:placeholder-shown)]:top-1.5 peer-[:not(:placeholder-shown)]:text-xs">
+                Phone Number
+              </label>
             </div>
 
             <div className="flex justify-end space-x-3 pt-4">
