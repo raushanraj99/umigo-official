@@ -47,7 +47,7 @@ const PlansSection = ({ User }) => {
     max_participants: 10,
     status: 'active'
   });
-  
+
   useEffect(() => {
     let isMounted = true;
     let timeoutId;
@@ -60,15 +60,15 @@ const PlansSection = ({ User }) => {
           if (!isMounted) return;
 
           const response = await hangoutService.getUserHostedHangouts(User.user_id);
-          
+
           // console.log("Plans API response:", response)
-          
+
           if (isMounted) {
             // Handle the response structure properly
             const hangouts = response?.hangouts || [];
-            
-              setPlans(hangouts);
-            
+
+            setPlans(hangouts);
+
           }
         }, 500); // 500ms delay to prevent API conflicts
 
@@ -77,7 +77,7 @@ const PlansSection = ({ User }) => {
         if (isMounted) {
           const errorMessage = error.response?.data?.message || error.message || 'Failed to load plans';
           setError(`Error: ${errorMessage}. Using default plans.`);
-          
+
         }
       } finally {
         if (isMounted) {
@@ -132,7 +132,7 @@ const PlansSection = ({ User }) => {
               try {
                 setIsDeleting(true);
                 await hangoutService.deleteHangout(planId);
-                
+
                 // Remove the deleted plan from the list
                 setPlans(prevPlans => prevPlans.filter(plan => plan.id !== planId));
                 toast.success('Plan deleted successfully!');
@@ -147,7 +147,7 @@ const PlansSection = ({ User }) => {
           },
           {
             label: 'Cancel',
-            onClick: () => {}
+            onClick: () => { }
           }
         ]
       });
@@ -164,14 +164,14 @@ const PlansSection = ({ User }) => {
     try {
       setIsUpdating(true);
       const updatedPlan = await hangoutService.updateHangout(editingPlan.id, formData);
-      console.log("update hangout : ",updatedPlan);
+      console.log("update hangout : ", updatedPlan);
       // Update the plans list with the updated plan
-      setPlans(prevPlans => 
-        prevPlans.map(plan => 
+      setPlans(prevPlans =>
+        prevPlans.map(plan =>
           plan.id === editingPlan.id ? { ...plan, ...formData } : plan
         )
       );
-      
+
       toast.success('Plan updated successfully!');
       setEditingPlan(null);
     } catch (error) {
@@ -186,24 +186,24 @@ const PlansSection = ({ User }) => {
   // Format time display
   const formatTimeDisplay = (startTime, endTime, address) => {
     if (address && !startTime) return address; // For default plans
-    
+
     try {
       const start = new Date(startTime);
       const end = endTime ? new Date(endTime) : null;
-      
-      const timeOptions = { 
-        month: 'short', 
+
+      const timeOptions = {
+        month: 'short',
         day: 'numeric',
-        hour: '2-digit', 
+        hour: '2-digit',
         minute: '2-digit',
-        hour12: true 
+        hour12: true
       };
-      
+
       let timeDisplay = start.toLocaleString('en-US', timeOptions);
       if (end) {
         timeDisplay += ` - ${end.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}`;
       }
-      
+
       return timeDisplay;
     } catch (error) {
       console.error('Error formatting time:', error);
@@ -214,11 +214,11 @@ const PlansSection = ({ User }) => {
   // Get appropriate icon based on title or tags
   const getIcon = (plan) => {
     if (plan.img) return plan.img; // For default plans
-    
+
     const title = plan.title?.toLowerCase() || '';
     const tags = plan.tags || [];
     const allText = (title + ' ' + tags.join(' ')).toLowerCase();
-    
+
     if (allText.includes('coffee') || allText.includes('cafe')) {
       return <div className="text-2xl">☕</div>;
     }
@@ -231,7 +231,7 @@ const PlansSection = ({ User }) => {
     if (allText.includes('shop') || allText.includes('mall') || allText.includes('store')) {
       return <FaShoppingBag className="text-2xl" />;
     }
-    
+
     // Default icon
     return <div className="text-2xl">📅</div>;
   };
@@ -254,18 +254,18 @@ const PlansSection = ({ User }) => {
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-bold">Your Plans</h2>
       </div>
-      
+
       {error && (
         <div className="text-yellow-600 text-center py-2 text-sm bg-yellow-50 rounded-lg border border-yellow-200">
           {error}
         </div>
       )}
-      
+
       {plans.length === 0 ? (
         <div className="text-center py-8 bg-gray-50 rounded-lg">
           <div className="text-4xl mb-2">📅</div>
           <p className="text-gray-500 mb-2">No plans found.</p>
-          <button 
+          <button
             className="text-orange-500 hover:text-orange-600 text-sm font-medium transition-colors"
             onClick={() => console.log('Create new plan')}
           >
@@ -275,9 +275,9 @@ const PlansSection = ({ User }) => {
       ) : (
         <div className="grid gap-4">
           {plans.map((plan) => (
-            <div 
-              key={plan.id} 
-              className="flex items-center p-4 rounded-lg shadow-md bg-white"
+            <div
+              key={plan.id}
+              className="flex items-center flex-wrap p-4 rounded-lg shadow-md bg-white"
             >
               <div className="mr-4 p-3 bg-gray-100 rounded-xl flex-shrink-0">
                 {getIcon(plan)}
@@ -301,8 +301,8 @@ const PlansSection = ({ User }) => {
                 {plan.tags && plan.tags.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-2">
                     {plan.tags.slice(0, 3).map((tag, index) => (
-                      <span 
-                        key={index} 
+                      <span
+                        key={index}
                         className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
                       >
                         {tag}
@@ -340,12 +340,12 @@ const PlansSection = ({ User }) => {
 
       {/* Edit Plan Modal */}
       {editingPlan && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-md bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl w-full max-w-md">
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold">Update Plan</h2>
-                <button 
+                <button
                   onClick={() => setEditingPlan(null)}
                   className="text-gray-400 hover:text-gray-600 transition-colors"
                   disabled={isUpdating}
@@ -353,107 +353,131 @@ const PlansSection = ({ User }) => {
                   <FaTimes className="w-5 h-5" />
                 </button>
               </div>
-          
+
+              {/* edit plan form */}
               <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                <div className="relative">
                   <input
                     type="text"
                     name="title"
                     value={formData.title}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    className="w-full px-3 pt-6 pb-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent peer"
+                    placeholder=" "
                     required
+                    minLength={2}
+                    maxLength={25}
                   />
+                  <label className="flex justify-between w-[90%] absolute left-3 top-4 text-gray-500 transition-all duration-200 peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-focus:top-1.5 peer-focus:text-xs peer-focus:text-orange-500 peer-[:not(:placeholder-shown)]:top-1.5 peer-[:not(:placeholder-shown)]:text-xs pointer-events-none">
+                    <span>Title</span>
+                    <div className="text-[9px] text-gray-500 mt-1">
+                      {formData.title.length}/25 characters
+                    </div>
+                  </label>
                 </div>
-            
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+
+                <div className="relative">
                   <textarea
                     name="description"
                     value={formData.description}
                     onChange={handleInputChange}
                     rows="3"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    className="w-full px-3 pt-6 pb-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent peer"
+                    placeholder=" "
+                    maxLength={250}
                   />
+                  <label className="flex justify-between w-[90%] absolute left-3 top-4 text-gray-500 transition-all duration-200 peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-focus:top-1.5 peer-focus:text-xs peer-focus:text-orange-500 peer-[:not(:placeholder-shown)]:top-1.5 peer-[:not(:placeholder-shown)]:text-xs pointer-events-none">
+                    <span>Description</span>
+                    <div className="text-[9px] text-gray-500 mt-1">
+                      {formData.description.length}/250 characters
+                    </div>
+                  </label>
                 </div>
-            
+
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
-                    <div className="relative">
-                      <input
-                        type="datetime-local"
-                        name="start_time"
-                        value={formData.start_time}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                        required
-                      />
-                      <FaCalendarAlt className="absolute right-3 top-3 text-gray-400" />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">End Time</label>
-                    <div className="relative">
-                      <input
-                        type="datetime-local"
-                        name="end_time"
-                        value={formData.end_time}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                      />
-                      <FaCalendarAlt className="absolute right-3 top-3 text-gray-400" />
-                    </div>
-                  </div>
-                </div>
-            
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
                   <div className="relative">
                     <input
-                      type="text"
-                      name="address"
-                      value={formData.address}
+                      type="datetime-local"
+                      name="start_time"
+                      value={formData.start_time}
                       onChange={handleInputChange}
-                      className="w-full px-3 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                      placeholder="Enter location"
+                      className="w-full px-3 pt-6 pb-2 pr-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent peer"
+                      placeholder=" "
+                      required
                     />
-                    <FaMapMarkerAlt className="absolute left-3 top-3 text-gray-400" />
+                    <label className="absolute left-3 top-1.5 text-xs text-gray-500 transition-all duration-200 peer-focus:text-orange-500 pointer-events-none">
+                      Start Time
+                    </label>
+                    {/* <FaCalendarAlt className="absolute right-3 top-4 text-gray-400 pointer-events-none" /> */}
                   </div>
-                </div>
-            
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Max Participants</label>
+
                   <div className="relative">
                     <input
-                      type="number"
-                      name="max_participants"
-                      min="1"
-                      max="100"
-                      value={formData.max_participants}
+                      type="datetime-local"
+                      name="end_time"
+                      value={formData.end_time}
                       onChange={handleInputChange}
-                      className="w-full px-3 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      className="w-full px-3 pt-6 pb-2 pr-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent peer"
+                      placeholder=" "
                     />
-                    <FaUsers className="absolute left-3 top-3 text-gray-400" />
+                    <label className="absolute left-3 top-1.5 text-xs text-gray-500 transition-all duration-200 peer-focus:text-orange-500 pointer-events-none">
+                      End Time
+                    </label>
+                    {/* <FaCalendarAlt className="absolute right-3 top-4 text-gray-400 pointer-events-none" /> */}
                   </div>
                 </div>
-            
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+
+                <div className="relative">
+                  <input
+                    type="text"
+                    name="address"
+                    value={formData.address}
+                    onChange={handleInputChange}
+                    className="w-full px-3 pt-6 pb-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent peer"
+                    placeholder=" "
+                  />
+                  <label className="absolute left-10 top-4 text-gray-500 transition-all duration-200 peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-focus:top-1.5 peer-focus:text-xs peer-focus:text-orange-500 peer-[:not(:placeholder-shown)]:top-1.5 peer-[:not(:placeholder-shown)]:text-xs pointer-events-none">
+                    Location
+                  </label>
+                  <FaMapMarkerAlt className="absolute left-3 top-5 text-gray-400 pointer-events-none peer-focus:top-4 peer-[:not(:placeholder-shown)]:top-4" />
+                </div>
+
+                <div className="relative">
+                  <input
+                    type="number"
+                    name="max_participants"
+                    min="1"
+                    max="100"
+                    value={formData.max_participants}
+                    onChange={handleInputChange}
+                    className="w-full px-3 pt-6 pb-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent peer"
+                    placeholder=" "
+                  />
+                  <label className="absolute left-10 top-4 text-gray-500 transition-all duration-200 peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-focus:top-1.5 peer-focus:text-xs peer-focus:text-orange-500 peer-[:not(:placeholder-shown)]:top-1.5 peer-[:not(:placeholder-shown)]:text-xs pointer-events-none">
+                    Max Participants
+                  </label>
+                  <FaUsers className="absolute left-3 top-4 text-gray-400 pointer-events-none peer-focus:top-4 peer-[:not(:placeholder-shown)]:top-4" />
+                </div>
+
+                <div className="relative">
                   <select
                     name="status"
                     value={formData.status}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    className="w-full px-3 pt-6 pb-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent peer appearance-none bg-white"
                   >
                     <option value="active">Active</option>
                     <option value="cancelled">Cancelled</option>
                     <option value="completed">Completed</option>
                   </select>
+                  <label className="absolute left-3 top-1.5 text-xs text-gray-500 transition-all duration-200 peer-focus:text-orange-500 pointer-events-none">
+                    Status
+                  </label>
+                  <svg className="absolute right-3 top-4 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
                 </div>
-            
+
                 <div className="flex justify-end space-x-3 pt-4">
                   <button
                     type="button"

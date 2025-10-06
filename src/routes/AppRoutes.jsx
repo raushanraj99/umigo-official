@@ -12,6 +12,7 @@ import Notifications from "../pages/Notifications";
 // import GlowMode from "../pages/GlowMode";
 import Chat from "../pages/Chat";
 import ProtectedRoute from "../components/ProtectedRoute";
+import UserProfile from "../pages/userProfile";
 
 const AppRoutes = () => (
   <Routes>
@@ -46,6 +47,17 @@ const AppRoutes = () => (
         </ProtectedRoute>
       }
     />
+    {/* <Route path="/profile" element={
+      <ProtectedRoute>
+        <Profile />
+      </ProtectedRoute>
+    } /> */}
+
+    <Route path="/user/:id" element={
+      <ProtectedRoute>
+        <UserProfile />
+      </ProtectedRoute>
+    } />
   </Routes>
 );
 

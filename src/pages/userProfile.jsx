@@ -1,166 +1,78 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import { authAPI } from "../services/authService";
-import { FaUser, FaCalendar, FaMapMarkerAlt, FaClock, FaEllipsisV, FaCheck, FaTimes, FaComment, FaHourglass, FaWalking, FaShoppingBag } from 'react-icons/fa';
-import hangoutService from '../services/hangoutService';
-import { toast } from 'react-toastify';
-
-import LocationSelector from "./components/LocationSelector";
-import MyEditProfile from "../components/profile/MyEditProfile";
-import PlanSection from "../components/profile/PlansSection"
+import { useNavigate, useParams } from "react-router-dom";
+import { FaWalking, FaShoppingBag } from 'react-icons/fa';
+import { FaClapperboard } from "react-icons/fa6";
+import { samplePlans } from '../../public/samplePlans';
 
 const interests = ["Movies", "Coffee", "Gym", "Walk"];
 
-const Profile = () => {
-  const { user, logout, updateUser } = useAuth();
+// Default plans data in case API fails
+const defaultPlans = [
+  {
+    id: 1,
+    title: "Evening Walk",
+    address: "6:00 PM - Gandhi Maidan",
+    start_time: new Date().toISOString(),
+    img: <FaWalking className="text-7xl" />,
+  },
+  {
+    id: 2,
+    title: "Saiyaara",
+    address: "Friday - 9:00 Cinepolis",
+    start_time: new Date().toISOString(),
+    img: <FaClapperboard className="text-7xl" />,
+  },
+  {
+    id: 3,
+    title: "Winter Shopping",
+    address: "Sunday - 4:00 PM - City Centre",
+    start_time: new Date().toISOString(),
+    img: <FaShoppingBag className="text-7xl" />,
+  },
+];
+
+const UserProfile = () => {
   const navigate = useNavigate();
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  console.log(currentUser);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
-  const [profileError, setProfileError] = useState(null);
-  
-  const [planRequests, setPlanRequests] = useState([
-    {
-      id: '1',
-      title: 'Coffee Meetup',
-      location: 'Starbucks, Connaught Place',
-      time: '2024-09-10T15:00:00Z',
-      requester: {
-        id: 'user2',
-        name: 'Alex Johnson',
-        avatar: '👨‍💼'
-      },
-      status: 'pending'
-    },
-    {
-      id: '2',
-      title: 'Study Session',
-      location: 'Central Library',
-      time: '2024-09-12T10:00:00Z',
-      requester: {
-        id: 'user3',
-        name: 'Sarah Williams',
-        avatar: '👩‍🎓'
-      },
-      status: 'pending'
-    }
-  ]);
+  // const [profileError, setProfileError] = useState(null);
 
-  const [location, setLocation] = useState("Current Location");
-  const [showEditProfile, setShowEditProfile] = useState(false);
-
-  // Fixed fetchUser function to match the authAPI response structure
-  const fetchUser = useCallback(async () => {
-    let isMounted = true;
-    
-    try {
-      setIsLoadingProfile(true);
-      setProfileError(null);
-    
-      const userInfo = await authAPI.getProfile();
-      console.log("user info : ",userInfo)
-      
-      if (isMounted) {
-
-        // The authAPI.getProfile() now returns response.user directly
-        setCurrentUser(userInfo || null);
-      }
-    } catch (error) {
-      console.error("Failed to fetch user profile:", error);
-      if (isMounted) {
-        const errorMessage = error.message || 'Failed to load profile';
-        setProfileError(errorMessage);
-        toast.error("Failed to load user profile");
-      }
-    } finally {
-      if (isMounted) {
-        setIsLoadingProfile(false);
-      }
-    }
-    
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  //get id
+  const { id } = useParams();
 
   useEffect(() => {
-    fetchUser();
-  }, [fetchUser]);
-
-  const handleApproveRequest = async (requestId) => {
-    try {
-      setPlanRequests(prev => 
-        prev.map(req => 
-          req.id === requestId ? { ...req, status: 'approved' } : req
-        )
-      );
-      
-      // Here you would typically make an API call to update the request status
-      // await hangoutService.updateJoinRequest(hangoutId, requestId, 'approved');
-      
-      toast.success('Plan request approved!');
-    } catch (error) {
-      console.error('Error approving request:', error);
-      toast.error('Failed to approve request');
-      // Revert on error
-      setPlanRequests(prev => 
-        prev.map(req => 
-          req.id === requestId ? { ...req, status: 'pending' } : req
-        )
-      );
-    }
-  };
-
-  const handleRejectRequest = async (requestId) => {
-    try {
-      // Remove the rejected plan from the list
-      setPlanRequests(prev => prev.filter(req => req.id !== requestId));
-      
-      // Here you would typically make an API call to update the request status
-      // await hangoutService.updateJoinRequest(hangoutId, requestId, 'rejected');
-      
-      toast.info('Plan request rejected and removed');
-    } catch (error) {
-      console.error('Error rejecting request:', error);
-      toast.error('Failed to reject request');
-    }
-  };
-
-  const navigateToChat = (request) => {
-    // Here you would navigate to the chat with the requester
-    // navigate(`/chat/${request.requester.id}`);
-    toast.info(`Chat with ${request.requester.name} would open here`);
-  };
-
-  const handleLogout = async () => {
-    setIsLoggingOut(true);
-    try {
-      await logout();
-      navigate("/");
-    } catch (error) {
-      console.error("Logout error:", error);
-      navigate("/");
-    } finally {
-      setIsLoggingOut(false);
-    }
-  };
-
-  const handleLocationUpdate = (newLocation) => {
-    setLocation(newLocation);
-    // Here you can add API call to save the location to the user's profile
-    // Example API call:
-    // await updateUserProfile({ location: newLocation });
-  };
-
-  const handleProfileUpdate = () => {
-    setCurrentUser(currentUser);
-    updateUser(currentUser);
-    // Optionally refresh the profile data
-    fetchUser();
-  };
+    setCurrentUser(samplePlans.filter((user) => user.id === id)[0]);
+    setIsLoadingProfile(false);
+  }, [])
 
   const nameFirstLetter = currentUser?.name?.charAt(0)?.toUpperCase() || '?';
+
+  // Get appropriate icon based on title or tags
+  const getIcon = (plan) => {
+    if (plan.img) return plan.img; // For default plans
+
+    const title = plan.title?.toLowerCase() || '';
+    const tags = plan.tags || [];
+    const allText = (title + ' ' + tags.join(' ')).toLowerCase();
+
+    if (allText.includes('coffee') || allText.includes('cafe')) {
+      return <div className="text-2xl">☕</div>;
+    }
+    if (allText.includes('movie') || allText.includes('cinema') || allText.includes('film')) {
+      return <FaClapperboard className="text-2xl" />;
+    }
+    if (allText.includes('walk') || allText.includes('stroll')) {
+      return <FaWalking className="text-2xl" />;
+    }
+    if (allText.includes('shop') || allText.includes('mall') || allText.includes('store')) {
+      return <FaShoppingBag className="text-2xl" />;
+    }
+
+    // Default icon
+    return <div className="text-2xl">📅</div>;
+  };
+
 
   // Loading state for profile
   if (isLoadingProfile) {
@@ -174,35 +86,8 @@ const Profile = () => {
     );
   }
 
-  // Error state for profile
-  if (profileError && !currentUser) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-red-500 text-6xl mb-4">⚠️</div>
-          <p className="text-red-600 mb-4">Failed to load profile</p>
-          <p className="text-gray-500 text-sm mb-4">{profileError}</p>
-          <button 
-            onClick={() => fetchUser()} 
-            className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <>
-      {showEditProfile && (
-        <MyEditProfile 
-          onClose={() => setShowEditProfile(false)}
-          onUpdate={handleProfileUpdate}
-          currentUser={currentUser}
-        />
-      )}
-
       <div className="min-h-screen bg-white pb-6">
         {/* Top Bar */}
         <div className="bg-white border-b border-gray-200 px-4 py-3">
@@ -240,21 +125,15 @@ const Profile = () => {
                   />
                 </svg>
                 <div className="flex-1">
-                  <div className="flex items-center">
-                    <LocationSelector
+                  <div className="flex items-center font-semibold text-black">
+                    {/* <LocationSelector
                       initialLocation={location}
                       onLocationUpdate={handleLocationUpdate}
-                    />
+                    /> */}
+                    {currentUser?.address}
                   </div>
                 </div>
               </div>
-              <button 
-                className="bg-red-500 text-white px-4 py-2 rounded-full cursor-pointer hover:bg-red-600 transition-colors duration-300 ease-in-out disabled:opacity-50" 
-                onClick={handleLogout}
-                disabled={isLoggingOut}
-              >
-                {isLoggingOut ? 'Logging out...' : 'Logout'}
-              </button>
             </div>
           </div>
         </div>
@@ -263,9 +142,9 @@ const Profile = () => {
         <div className="flex flex-col md:flex-row gap-7 lg:gap-20 xl:gap-32 p-8 lg:px-20 xl:px-30">
           <div className="flex flex-col justify-center items-center">
             <div className="rounded-full border overflow-hidden">
-              {currentUser?.image_url ? (
+              {currentUser?.avatarUrl ? (
                 <img
-                  src={currentUser.image_url}
+                  src={currentUser.avatarUrl}
                   alt={currentUser?.name || "User"}
                   className="w-[150px] h-[150px] md:h-[300px] md:w-[300px] rounded-full object-cover"
                   onError={(e) => {
@@ -274,9 +153,9 @@ const Profile = () => {
                   }}
                 />
               ) : null}
-              <div 
-                className="w-[150px] h-[150px] md:h-[300px] md:w-[300px] flex items-center justify-center bg-gray-200 text-6xl font-bold rounded-full" 
-                style={{ display: currentUser?.image_url ? 'none' : 'flex' }}
+              <div
+                className="w-[150px] h-[150px] md:h-[300px] md:w-[300px] flex items-center justify-center bg-gray-200 text-6xl font-bold rounded-full"
+                style={{ display: currentUser?.avatarUrl ? 'none' : 'flex' }}
               >
                 {nameFirstLetter}
               </div>
@@ -296,27 +175,100 @@ const Profile = () => {
               ))}
             </div>
             <div className="flex gap-3 p-1 mt-4 font-medium">
-              <button 
-                className="border border-orange-500 py-2 px-9 rounded-lg cursor-pointer hover:bg-orange-50 transition-colors font-medium"
-                onClick={() => setShowEditProfile(true)}
-              >
-                Edit Profile
+              <button className="bg-orange-500 py-2 px-9 rounded-lg cursor-pointer text-orange-100 font-semibold transition-colors flex items-center gap-2">
+                Approach
               </button>
-              <button className="border border-orange-500 py-2 px-9 rounded-lg cursor-pointer font-medium hover:bg-orange-50 transition-colors flex items-center gap-2">
-                <span className="relative bg-orange-500 group-hover:bg-white rounded-full w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center text-white group-hover:text-orange-500 transition-all duration-300 group-hover:rotate-90 font-bold text-lg sm:text-xl shadow-sm">
-                  +
-                </span> Plan
+              <button className="bg-orange-500 py-2 px-9 rounded-lg cursor-pointer text-orange-100 font-semibold transition-colors flex items-center gap-2">
+                Message
               </button>
             </div>
           </div>
-
-          <div className="flex-1 max-w-2xl">
-            <PlanSection User={currentUser}  />
-          </div>  
+          <div className="w-full">
+            <h1 className="text-orange-500 text-left py-5 text-2xl font-semibold">Plans</h1>
+            <div className="flex-1 max-w-2xl">
+              {/* <PlanSection User={currentUser}  /> */}
+              {defaultPlans.length === 0 ? (
+                <div className="w-full text-center py-8 bg-gray-50 rounded-lg">
+                  <div className="text-4xl mb-2">📅</div>
+                  <p className="text-gray-500 mb-2">No plans found.</p>
+                  <button
+                    className="text-orange-500 hover:text-orange-600 text-sm font-medium transition-colors"
+                    onClick={() => console.log('Create new plan')}
+                  >
+                    Create your first plan
+                  </button>
+                </div>
+              ) : (
+                <div className="grid gap-4">
+                  {defaultPlans.map((plan) => (
+                    <div
+                      key={plan.id}
+                      className="flex items-center p-4 rounded-lg shadow-md bg-white"
+                    >
+                      <div className="mr-4 p-3 bg-gray-100 rounded-xl flex-shrink-0">
+                        {getIcon(plan)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gray-800 text-left truncate">
+                          {plan.title || 'Untitled Plan'}
+                        </h3>
+                        {/* <p className="text-sm text-gray-600 truncate">
+                              {formatTimeDisplay(plan.start_time, plan.end_time, plan.address)}
+                            </p> */}
+                        {plan.address && (
+                          <div className="flex items-center mt-1 text-xs text-gray-500">
+                            <svg className="w-3 h-3 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <span className="truncate">{plan.address}</span>
+                          </div>
+                        )}
+                        {plan.tags && plan.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {plan.tags.slice(0, 3).map((tag, index) => (
+                              <span
+                                key={index}
+                                className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                            {plan.tags.length > 3 && (
+                              <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                                +{plan.tags.length - 3}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      {/* <div className="flex gap-2">
+                      <button
+                        className="border border-orange-500 text-orange-500 hover:bg-orange-50 py-2 px-4 rounded-lg text-sm font-medium whitespace-nowrap transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        onClick={() => handleEditClick(plan)}
+                        disabled={isUpdating}
+                      >
+                        {isUpdating && editingPlan?.id === plan.id ? 'Updating...' : 'Update'}
+                      </button>
+                      <button
+                        className="border border-red-500 text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        onClick={() => handleDeletePlan(plan.id)}
+                        disabled={isDeleting}
+                        title="Delete plan"
+                      >
+                        <FaTrash className="w-4 h-4" />
+                      </button>
+                    </div> */}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Plan Requests Section */}
-        <div className="mt-10 px-4 sm:px-6 max-w-6xl mx-auto">
+        {/* <div className="mt-10 px-4 sm:px-6 max-w-6xl mx-auto">
           <div className="w-full mb-6">
             <div className="inline-flex items-center gap-3 pb-2 border-b-2 border-stone-800">
               <FaCalendar className="text-2xl sm:text-3xl text-stone-800" />
@@ -399,10 +351,10 @@ const Profile = () => {
               ))
             )}
           </div>
-        </div>
+        </div> */}
       </div>
     </>
   );
 };
 
-export default Profile;
+export default UserProfile;
