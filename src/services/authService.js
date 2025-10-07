@@ -177,7 +177,7 @@ export const authAPI = {
         name,
         password,
         phone_no: userData.phone_no || '',
-        role: userData.role || 'user',
+        role: userData.role || 'USER',
         subscription_type: userData.subscription_type || 'free'
       });
 
