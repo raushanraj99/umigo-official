@@ -45,12 +45,12 @@ function PlanDetailCard({ plan, onClose, onApproach, onChat, join, onJoin }) {
 
           {/* Profile Image */}
           <div className="absolute -bottom-16 left-6 w-28 h-28">
-             <NavLink to={`/user/${plan.id}`}>
-            <img
-              src={plan.avatarUrl || 'https://randomuser.me/api/portraits/men/1.jpg'}
-              alt={plan.name}
-              className="w-full h-full rounded-full object-cover border-4 border-white shadow-md"
-            />
+            <NavLink to={`/user/${plan.id}`}>
+              <img
+                src={plan.avatarUrl || 'https://randomuser.me/api/portraits/men/1.jpg'}
+                alt={plan.name}
+                className="w-full h-full rounded-full object-cover border-4 border-white shadow-md"
+              />
             </NavLink>
             {/* Name */}
             <NavLink to={`/user/${plan.id}`}>
@@ -77,7 +77,9 @@ function PlanDetailCard({ plan, onClose, onApproach, onChat, join, onJoin }) {
             </div>
             <div className=" text-[#1c1c1c] flex items-center gap-1">
               <span role="img" aria-label="place">📍</span>
-              <span className='opacity-60 text-sm'>{plan.address}</span>
+              <span className="opacity-60 text-sm">
+                {plan.location.length > 30 ? `${plan.location.slice(0, 30)}...` : plan.location}
+              </span>
             </div>
           </div>
 

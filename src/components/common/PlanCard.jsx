@@ -26,7 +26,7 @@ function PlanCard({
   //     setjoin(e);
   //   }
   // };
-  
+
   const handleJoinClick = (e) => {
     // Stop event propagation to prevent card click
     e.stopPropagation();
@@ -72,7 +72,9 @@ function PlanCard({
           {location && (
             <div className=" text-[#1c1c1c] flex items-center gap-1">
               {/* <span role="img" aria-label="place">📍</span> */}
-              <span className='opacity-60 text-sm'>{location}</span>
+              <span className="opacity-60 text-sm">
+                {location.length > 30 ? `${location.slice(0, 30)}...` : location}
+              </span>
             </div>
           )
           }
@@ -81,8 +83,8 @@ function PlanCard({
         <button
           onClick={handleJoinClick}
           className={`h-fit px-4 py-2 mt-5 rounded-xl whitespace-nowrap z-10 cursor-pointer transition-all duration-300 ${join
-              ? 'bg-white text-[#ff5500] border border-[#ff5500] cursor-not-allowed'
-              : 'bg-[#ff5500] text-white hover:bg-[#e64d00]'
+            ? 'bg-white text-[#ff5500] border border-[#ff5500] cursor-not-allowed'
+            : 'bg-[#ff5500] text-white hover:bg-[#e64d00]'
             }`}
           disabled={join}
         >

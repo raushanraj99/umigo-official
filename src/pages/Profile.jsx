@@ -8,9 +8,10 @@ import { toast } from 'react-toastify';
 
 import LocationSelector from "./components/LocationSelector";
 import MyEditProfile from "../components/profile/MyEditProfile";
-import PlanSection from "../components/profile/PlansSection"
+import PlanSection from "../components/profile/PlansSection";
+import CreatePostModal from "../components/common/CreatePostModal";
 
-const interests = ["Movies", "Coffee", "Gym", "Walk"];
+// const interests = ["Movies", "Coffee", "Gym", "Walk"];
 
 const Profile = () => {
   const { user, logout, updateUser } = useAuth();
@@ -19,7 +20,7 @@ const Profile = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [profileError, setProfileError] = useState(null);
-  
+
   const [planRequests, setPlanRequests] = useState([
     {
       id: '1',
@@ -49,18 +50,19 @@ const Profile = () => {
 
   const [location, setLocation] = useState("Current Location");
   const [showEditProfile, setShowEditProfile] = useState(false);
+  const [isCreatePostModalOpen, setIsCreatePostModalOpen] = useState(false);
 
   // Fixed fetchUser function to match the authAPI response structure
   const fetchUser = useCallback(async () => {
     let isMounted = true;
-    
+
     try {
       setIsLoadingProfile(true);
       setProfileError(null);
-    
+
       const userInfo = await authAPI.getProfile();
-      console.log("user info : ",userInfo)
-      
+      // console.log("user info : ", userInfo)
+
       if (isMounted) {
 
         // The authAPI.getProfile() now returns response.user directly
@@ -78,7 +80,7 @@ const Profile = () => {
         setIsLoadingProfile(false);
       }
     }
-    
+
     return () => {
       isMounted = false;
     };
@@ -90,22 +92,22 @@ const Profile = () => {
 
   const handleApproveRequest = async (requestId) => {
     try {
-      setPlanRequests(prev => 
-        prev.map(req => 
+      setPlanRequests(prev =>
+        prev.map(req =>
           req.id === requestId ? { ...req, status: 'approved' } : req
         )
       );
-      
+
       // Here you would typically make an API call to update the request status
       // await hangoutService.updateJoinRequest(hangoutId, requestId, 'approved');
-      
+
       toast.success('Plan request approved!');
     } catch (error) {
       console.error('Error approving request:', error);
       toast.error('Failed to approve request');
       // Revert on error
-      setPlanRequests(prev => 
-        prev.map(req => 
+      setPlanRequests(prev =>
+        prev.map(req =>
           req.id === requestId ? { ...req, status: 'pending' } : req
         )
       );
@@ -116,10 +118,10 @@ const Profile = () => {
     try {
       // Remove the rejected plan from the list
       setPlanRequests(prev => prev.filter(req => req.id !== requestId));
-      
+
       // Here you would typically make an API call to update the request status
       // await hangoutService.updateJoinRequest(hangoutId, requestId, 'rejected');
-      
+
       toast.info('Plan request rejected and removed');
     } catch (error) {
       console.error('Error rejecting request:', error);
@@ -182,8 +184,8 @@ const Profile = () => {
           <div className="text-red-500 text-6xl mb-4">⚠️</div>
           <p className="text-red-600 mb-4">Failed to load profile</p>
           <p className="text-gray-500 text-sm mb-4">{profileError}</p>
-          <button 
-            onClick={() => fetchUser()} 
+          <button
+            onClick={() => fetchUser()}
             className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors"
           >
             Retry
@@ -196,7 +198,7 @@ const Profile = () => {
   return (
     <>
       {showEditProfile && (
-        <MyEditProfile 
+        <MyEditProfile
           onClose={() => setShowEditProfile(false)}
           onUpdate={handleProfileUpdate}
           currentUser={currentUser}
@@ -248,8 +250,8 @@ const Profile = () => {
                   </div>
                 </div>
               </div>
-              <button 
-                className="bg-red-500 text-white px-4 py-2 rounded-full cursor-pointer hover:bg-red-600 transition-colors duration-300 ease-in-out disabled:opacity-50" 
+              <button
+                className="bg-red-500 text-white px-4 py-2 rounded-full cursor-pointer hover:bg-red-600 transition-colors duration-300 ease-in-out disabled:opacity-50"
                 onClick={handleLogout}
                 disabled={isLoggingOut}
               >
@@ -274,8 +276,8 @@ const Profile = () => {
                   }}
                 />
               ) : null}
-              <div 
-                className="w-[150px] h-[150px] md:h-[300px] md:w-[300px] flex items-center justify-center bg-gray-200 text-6xl font-bold rounded-full" 
+              <div
+                className="w-[150px] h-[150px] md:h-[300px] md:w-[300px] flex items-center justify-center bg-gray-200 text-6xl font-bold rounded-full"
                 style={{ display: currentUser?.image_url ? 'none' : 'flex' }}
               >
                 {nameFirstLetter}
@@ -285,7 +287,9 @@ const Profile = () => {
             {currentUser?.bio && (
               <p className="text-gray-600 text-center mt-2 max-w-sm">{currentUser.bio}</p>
             )}
-            <div className="flex gap-4 mt-4 p-1">
+
+            {/* hobby section */}
+            {/* <div className="flex gap-4 mt-4 p-1">
               {interests.map((hobby, index) => (
                 <button
                   key={index}
@@ -294,25 +298,33 @@ const Profile = () => {
                   {hobby}
                 </button>
               ))}
-            </div>
+            </div> */}
+
             <div className="flex gap-3 p-1 mt-4 font-medium">
-              <button 
+              <button
                 className="border border-orange-500 py-2 px-9 rounded-lg cursor-pointer hover:bg-orange-50 transition-colors font-medium"
                 onClick={() => setShowEditProfile(true)}
               >
                 Edit Profile
               </button>
-              <button className="border border-orange-500 py-2 px-9 rounded-lg cursor-pointer font-medium hover:bg-orange-50 transition-colors flex items-center gap-2">
+              <button
+                className="border border-orange-500 py-2 px-9 rounded-lg cursor-pointer font-medium hover:bg-orange-50 transition-colors flex items-center gap-2"
+                 onClick={() => setIsCreatePostModalOpen(true)}
+              >
                 <span className="relative bg-orange-500 group-hover:bg-white rounded-full w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center text-white group-hover:text-orange-500 transition-all duration-300 group-hover:rotate-90 font-bold text-lg sm:text-xl shadow-sm">
                   +
                 </span> Plan
               </button>
+              <CreatePostModal
+                isOpen={isCreatePostModalOpen}
+                onClose={() => setIsCreatePostModalOpen(false)}
+              />
             </div>
           </div>
 
           <div className="flex-1 max-w-2xl">
-            <PlanSection User={currentUser}  />
-          </div>  
+            <PlanSection User={currentUser} />
+          </div>
         </div>
 
         {/* Plan Requests Section */}
@@ -323,7 +335,7 @@ const Profile = () => {
               <h1 className="text-2xl sm:text-3xl font-medium text-stone-800">Plan Requests</h1>
             </div>
           </div>
-          
+
           <div className="space-y-4">
             {planRequests.length === 0 ? (
               <div className="text-center py-12 bg-stone-50 rounded-lg">
@@ -332,18 +344,18 @@ const Profile = () => {
               </div>
             ) : (
               planRequests.map((request) => (
-                <div 
+                <div
                   key={request.id}
                   className="flex flex-col sm:flex-row gap-4 p-4 sm:p-5 border border-stone-200 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow"
                 >
                   <div className="text-3xl sm:text-4xl bg-stone-100 rounded-full w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center flex-shrink-0">
                     {request.requester.avatar}
                   </div>
-                  
+
                   <div className="flex-1 min-w-0">
                     <h3 className="text-lg sm:text-xl font-semibold text-stone-800 mb-1">{request.title}</h3>
                     <p className="text-sm text-stone-600 mb-2">From: {request.requester.name}</p>
-                    
+
                     <div className="flex flex-col sm:flex-row sm:items-center gap-3 text-sm text-stone-600">
                       <div className="flex items-center">
                         <FaMapMarkerAlt className="mr-2 text-stone-400" />
@@ -360,7 +372,7 @@ const Profile = () => {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="flex flex-col sm:flex-col-reverse gap-2 sm:gap-3 mt-2 sm:mt-0">
                     {request.status === 'pending' ? (
                       <>
