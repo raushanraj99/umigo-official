@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FiX, FiCheck, FiClock, FiBell } from 'react-icons/fi';
+import { toast } from 'react-toastify';
+import notificationService from '../services/notificationService';
 
 // Helper function to format date
 const formatDate = (date) => {
@@ -35,74 +37,74 @@ const formatTime = (date) => {
 };
 
 // Sample notifications data with timestamps
-const sampleNotifications = [
-  {
-    id: 1,
-    name: 'Selmon Bhai',
-    text: 'just posted a coffee plan near Dakbanglow. Wanna join?',
-    timestamp: new Date().toISOString() // Now
-  },
-  {
-    id: 2,
-    name: 'Rahul',
-    text: "turned on GlowMode — he's down to hang near KFC.",
-    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() // 2 hours ago
-  },
-  {
-    id: 3,
-    name: 'New feature',
-    text: 'You can now chat before joining a plan!',
-    timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() // 1 day ago
-  },
-  {
-    id: 4,
-    name: 'BeanStreet',
-    text: 'is offering 20% off today for Umigo users.',
-    timestamp: new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString() // 25 hours ago
-  },
-  {
-    id: 5,
-    name: 'Kriti',
-    text: 'viewed your profile through Spotlight.',
-    timestamp: new Date(2023, 7, 14).toISOString() // Specific date (Aug 14, 2023)
-  },
-  {
-    id: 6,
-    name: 'New feature',
-    text: 'You can now chat before joining a plan!',
-    timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() // 1 day ago
-  },
-  {
-    id: 7,
-    name: 'BeanStreet',
-    text: 'is offering 20% off today for Umigo users.',
-    timestamp: new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString() // 25 hours ago
-  },
-  {
-    id: 8,
-    name: 'Kriti',
-    text: 'viewed your profile through Spotlight.',
-    timestamp: new Date(2023, 7, 14).toISOString() // Specific date (Aug 14, 2023)
-  },
-  {
-    id: 9,
-    name: 'Reminder',
-    text: 'Your plan starts in 1 hour. Don’t forget!',
-    timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() // 1 day ago
-  },
-  {
-    id: 10,
-    name: 'Movie Night at PVR',
-    text: 'got 2 new join requests.',
-    timestamp: new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString() // 25 hours ago
-  },
-  {
-    id: 11,
-    name: 'Streak',
-    text: 'It’s been 3 days since your last plan. Post one now?',
-    timestamp: new Date(2023, 7, 14).toISOString() // Specific date (Aug 14, 2023)
-  }
-];
+// const sampleNotifications = [
+//   {
+//     id: 1,
+//     name: 'Selmon Bhai',
+//     text: 'just posted a coffee plan near Dakbanglow. Wanna join?',
+//     timestamp: new Date().toISOString() // Now
+//   },
+//   {
+//     id: 2,
+//     name: 'Rahul',
+//     text: "turned on GlowMode — he's down to hang near KFC.",
+//     timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() // 2 hours ago
+//   },
+//   {
+//     id: 3,
+//     name: 'New feature',
+//     text: 'You can now chat before joining a plan!',
+//     timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() // 1 day ago
+//   },
+//   {
+//     id: 4,
+//     name: 'BeanStreet',
+//     text: 'is offering 20% off today for Umigo users.',
+//     timestamp: new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString() // 25 hours ago
+//   },
+//   {
+//     id: 5,
+//     name: 'Kriti',
+//     text: 'viewed your profile through Spotlight.',
+//     timestamp: new Date(2023, 7, 14).toISOString() // Specific date (Aug 14, 2023)
+//   },
+//   {
+//     id: 6,
+//     name: 'New feature',
+//     text: 'You can now chat before joining a plan!',
+//     timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() // 1 day ago
+//   },
+//   {
+//     id: 7,
+//     name: 'BeanStreet',
+//     text: 'is offering 20% off today for Umigo users.',
+//     timestamp: new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString() // 25 hours ago
+//   },
+//   {
+//     id: 8,
+//     name: 'Kriti',
+//     text: 'viewed your profile through Spotlight.',
+//     timestamp: new Date(2023, 7, 14).toISOString() // Specific date (Aug 14, 2023)
+//   },
+//   {
+//     id: 9,
+//     name: 'Reminder',
+//     text: 'Your plan starts in 1 hour. Don’t forget!',
+//     timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() // 1 day ago
+//   },
+//   {
+//     id: 10,
+//     name: 'Movie Night at PVR',
+//     text: 'got 2 new join requests.',
+//     timestamp: new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString() // 25 hours ago
+//   },
+//   {
+//     id: 11,
+//     name: 'Streak',
+//     text: 'It’s been 3 days since your last plan. Post one now?',
+//     timestamp: new Date(2023, 7, 14).toISOString() // Specific date (Aug 14, 2023)
+//   }
+// ];
 
 const NotificationItem = ({ notification, onDelete }) => {
   const [isRead, setIsRead] = useState(false);
@@ -166,24 +168,36 @@ const NotificationItem = ({ notification, onDelete }) => {
 export default function Notifications() {
   const [notifications, setNotifications] = useState([]);
 
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const res = await notificationService.list();
+        setNotifications(res?.notifications || []);
+        console.log(res?.notifications);
+      } catch (error) {
+        console.error("Failed to fetch notifications:", error);
+      }
+    };
+
+    fetchNotifications();
+  }, []);
+
   // Group notifications by date
-  const groupedNotifications = notifications.reduce((groups, notification) => {
-    const date = new Date(notification.timestamp).toDateString();
-    if (!groups[date]) {
-      groups[date] = [];
-    }
-    groups[date].push(notification);
-    return groups;
-  }, {});
+  const groupedNotifications = (Array.isArray(notifications) ? notifications : []).reduce(
+    (groups, notification) => {
+      const date = new Date(notification.timestamp).toDateString();
+      if (!groups[date]) groups[date] = [];
+      groups[date].push(notification);
+      return groups;
+    },
+    {}
+  );
 
   // Sort groups by date (newest first)
-  const sortedGroups = Object.entries(groupedNotifications)
-    .sort(([dateA], [dateB]) => new Date(dateB) - new Date(dateA));
+  const sortedGroups = Object.entries(groupedNotifications).sort(
+    ([dateA], [dateB]) => new Date(dateB) - new Date(dateA)
+  );
 
-  // Initialize with sample data
-  useEffect(() => {
-    setNotifications(sampleNotifications);
-  }, []);
 
   const clearAllNotifications = () => {
     setNotifications([]);

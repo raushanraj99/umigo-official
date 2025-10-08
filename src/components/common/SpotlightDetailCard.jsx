@@ -2,6 +2,7 @@ import React from 'react';
 import { IoArrowBackOutline } from 'react-icons/io5';
 import { BsChatDots } from 'react-icons/bs';
 import { IoLocation } from "react-icons/io5";
+import { NavLink } from 'react-router-dom';
 
 function SpotlightDetailCard({ user, onClose, onApproach, onChat, approach = false }) {
   if (!user) return null;
@@ -44,15 +45,21 @@ function SpotlightDetailCard({ user, onClose, onApproach, onChat, approach = fal
         <div className="p-6 text-center">
           {/* Profile Picture */}
           <div className="relative mx-auto w-65 h-65 mb-4">
-            <img
-              src={user.avatarUrl || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=400&auto=format&fit=crop'}
-              alt={user.name}
-              className="w-full h-full rounded-full object-cover border-4 border-white shadow-md"
-            />
+            <NavLink to={`/user/${user.user_id}`}>
+              <img
+                src={user.avatarUrl || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=400&auto=format&fit=crop'}
+                alt={user.name}
+                className="w-full h-full rounded-full object-cover border-4 border-white shadow-md"
+              />
+            </NavLink>
           </div>
 
           {/* Name */}
-          <h3 className="text-xl font-bold text-gray-900 mb-1">{user.name || 'Mia Daniels'}</h3>
+          <h3 className="text-xl font-bold text-gray-900 mb-1">
+            <NavLink to={`/user/${user.user_id}`}>
+              {user.name || 'Mia Daniels'}
+            </NavLink>
+          </h3>
 
           {/* Status Badge */}
           <div className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-orange-50 text-orange-600 border border-orange-200 mb-6">
