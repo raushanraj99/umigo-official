@@ -27,6 +27,7 @@ const MyEditProfile = ({ onClose, onUpdate, currentUser }) => {
     }
   }, [currentUser, user]);
 
+  //UPDATE PROFILE OF USER ONLY NAME, BIO AND PHONE NUMBER -->
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -79,6 +80,7 @@ const MyEditProfile = ({ onClose, onUpdate, currentUser }) => {
     }
   };
 
+  //UPLOAD IMAGE -->
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {

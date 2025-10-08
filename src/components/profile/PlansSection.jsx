@@ -5,6 +5,7 @@ import { FaClapperboard } from 'react-icons/fa6';
 import { toast } from 'react-toastify';
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
+import CreatePostModal from '../common/CreatePostModal';
 
 // Default plans data in case API fails
 // const defaultPlans = [
@@ -38,6 +39,7 @@ const PlansSection = ({ User }) => {
   const [editingPlan, setEditingPlan] = useState(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isCreatePostModalOpen, setIsCreatePostModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -267,10 +269,13 @@ const PlansSection = ({ User }) => {
           <p className="text-gray-500 mb-2">No plans found.</p>
           <button
             className="text-orange-500 hover:text-orange-600 text-sm font-medium transition-colors"
-            onClick={() => console.log('Create new plan')}
+            onClick={() => setIsCreatePostModalOpen(true)}
           >
             Create your first plan
           </button>
+          <CreatePostModal
+            isOpen={isCreatePostModalOpen}
+            onClose={() => setIsCreatePostModalOpen(false)} />
         </div>
       ) : (
         <div className="grid gap-4">
@@ -289,13 +294,13 @@ const PlansSection = ({ User }) => {
                 {/* <p className="text-sm text-gray-600 truncate">
                   {formatTimeDisplay(plan.start_time, plan.end_time, plan.address)}
                 </p> */}
-                {plan.address && (
+                {plan.address || plan.location && (
                   <div className="flex items-center mt-1 text-xs text-gray-500">
                     <svg className="w-3 h-3 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
-                    <span className="truncate">{plan.address}</span>
+                    <span className="truncate">{plan.address || plan.location}</span>
                   </div>
                 )}
                 {plan.tags && plan.tags.length > 0 && (

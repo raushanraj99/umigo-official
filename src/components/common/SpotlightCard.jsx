@@ -47,7 +47,7 @@ function SpotlightCard({
     >
       <div className="flex items-center gap-4">
         <img
-          src={avatarUrl}
+          src={avatarUrl || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=400&auto=format&fit=crop'}
           alt={name}
           className="h-24 w-24 rounded-full object-cover"
         />
@@ -65,8 +65,8 @@ function SpotlightCard({
         <button
           onClick={handleApproachClick}
           className={`px-2 py-1 rounded-xl z-10 cursor-pointer text-lg transition-all duration-300 ${approach
-              ? 'bg-white text-[#ff5500] border border-[#ff5500] cursor-not-allowed'
-              : 'bg-[#ff5500] text-white hover:bg-[#e64d00]'
+            ? 'bg-white text-[#ff5500] border border-[#ff5500] cursor-not-allowed'
+            : 'bg-[#ff5500] text-white hover:bg-[#e64d00]'
             }`}
         >
           {approach ? 'Approached' : 'Approach'}
