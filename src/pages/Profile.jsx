@@ -5,6 +5,7 @@ import { authAPI } from "../services/authService";
 import { FaUser, FaCalendar, FaMapMarkerAlt, FaClock, FaEllipsisV, FaCheck, FaTimes, FaComment, FaHourglass, FaWalking, FaShoppingBag } from 'react-icons/fa';
 import hangoutService from '../services/hangoutService';
 import { toast } from 'react-toastify';
+import { userAPI } from "../services/authService";
 
 import LocationSelector from "./components/LocationSelector";
 import MyEditProfile from "../components/profile/MyEditProfile";
@@ -60,8 +61,7 @@ const Profile = () => {
       setIsLoadingProfile(true);
       setProfileError(null);
 
-      const userInfo = await authAPI.getProfile();
-      // console.log("user info : ", userInfo)
+      const userInfo = await userAPI.getCurrentUser();
 
       if (isMounted) {
 
