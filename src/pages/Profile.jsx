@@ -22,32 +22,9 @@ const Profile = () => {
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [profileError, setProfileError] = useState(null);
 
-  const [planRequests, setPlanRequests] = useState([
-    {
-      id: '1',
-      title: 'Coffee Meetup',
-      location: 'Starbucks, Connaught Place',
-      time: '2024-09-10T15:00:00Z',
-      requester: {
-        id: 'user2',
-        name: 'Alex Johnson',
-        avatar: '👨‍💼'
-      },
-      status: 'pending'
-    },
-    {
-      id: '2',
-      title: 'Study Session',
-      location: 'Central Library',
-      time: '2024-09-12T10:00:00Z',
-      requester: {
-        id: 'user3',
-        name: 'Sarah Williams',
-        avatar: '👩‍🎓'
-      },
-      status: 'pending'
-    }
-  ]);
+  const [planRequests, setPlanRequests] = useState([]);
+  const [isLoadingPlanRequests, setIsLoadingPlanRequests] = useState(false);
+  const [planRequestsError, setPlanRequestsError] = useState(null);
 
   const [location, setLocation] = useState("Current Location");
   const [showEditProfile, setShowEditProfile] = useState(false);
@@ -86,22 +63,83 @@ const Profile = () => {
     };
   }, []);
 
+  // Fetch plan requests (join requests for hosted hangouts)
+  const fetchPlanRequests = useCallback(async () => {
+    let isMounted = true;
+
+    try {
+      setIsLoadingPlanRequests(true);
+      setPlanRequestsError(null);
+
+      const requests = await hangoutService.getPlanRequests();
+
+      if (isMounted) {
+        setPlanRequests(Array.isArray(requests) ? requests : []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch plan requests:", error);
+      if (isMounted) {
+        let errorMessage = 'Failed to load plan requests';
+
+        // Handle different types of errors with user-friendly messages
+        if (error.response?.status === 401) {
+          errorMessage = 'Please log in again to view plan requests';
+        } else if (error.response?.status === 403) {
+          errorMessage = 'You do not have permission to view plan requests';
+        } else if (error.response?.status === 404) {
+          errorMessage = 'No hangouts found to check for requests';
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+
+        setPlanRequestsError(errorMessage);
+
+        // Only show toast for unexpected errors, not for permission issues
+        if (error.response?.status !== 403 && error.response?.status !== 404) {
+          toast.error("Failed to load plan requests");
+        }
+      }
+    } finally {
+      if (isMounted) {
+        setIsLoadingPlanRequests(false);
+      }
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   useEffect(() => {
     fetchUser();
-  }, [fetchUser]);
+    fetchPlanRequests();
+  }, [fetchUser, fetchPlanRequests]);
 
   const handleApproveRequest = async (requestId) => {
     try {
+      // Find the request to get the hangout_id
+      const request = planRequests.find(req => req.id === requestId);
+      if (!request) {
+        toast.error('Request not found');
+        return;
+      }
+
+      // Store original status for potential rollback
+      const originalStatus = request.status;
+
+      // Update local state immediately for better UX
       setPlanRequests(prev =>
         prev.map(req =>
           req.id === requestId ? { ...req, status: 'approved' } : req
         )
       );
 
-      // Here you would typically make an API call to update the request status
-      // await hangoutService.updateJoinRequest(hangoutId, requestId, 'approved');
+      // Make API call to update the request status using PATCH endpoint
+      await hangoutService.updateJoinRequest(request.hangout_id, requestId, 'approved');
 
       toast.success('Plan request approved!');
+      // Refresh the requests list to get updated data
+      await fetchPlanRequests();
     } catch (error) {
       console.error('Error approving request:', error);
       toast.error('Failed to approve request');
@@ -116,16 +154,25 @@ const Profile = () => {
 
   const handleRejectRequest = async (requestId) => {
     try {
-      // Remove the rejected plan from the list
+      // Find the request to get the hangout_id
+      const request = planRequests.find(req => req.id === requestId);
+      if (!request) {
+        toast.error('Request not found');
+        return;
+      }
+
+      // Update local state immediately for better UX (remove from list)
       setPlanRequests(prev => prev.filter(req => req.id !== requestId));
 
-      // Here you would typically make an API call to update the request status
-      // await hangoutService.updateJoinRequest(hangoutId, requestId, 'rejected');
+      // Make API call to update the request status using PATCH endpoint
+      await hangoutService.updateJoinRequest(request.hangout_id, requestId, 'rejected');
 
       toast.info('Plan request rejected and removed');
     } catch (error) {
       console.error('Error rejecting request:', error);
       toast.error('Failed to reject request');
+      // Refresh the requests list to revert changes on error
+      await fetchPlanRequests();
     }
   };
 
@@ -337,10 +384,28 @@ const Profile = () => {
           </div>
 
           <div className="space-y-4">
-            {planRequests.length === 0 ? (
+            {isLoadingPlanRequests ? (
+              <div className="text-center py-12 bg-stone-50 rounded-lg">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto"></div>
+                <p className="text-stone-500 text-lg mt-4">Loading plan requests...</p>
+              </div>
+            ) : planRequestsError ? (
+              <div className="text-center py-12 bg-red-50 rounded-lg">
+                <div className="text-red-500 text-6xl mb-4">⚠️</div>
+                <p className="text-red-600 mb-4">Failed to load plan requests</p>
+                <p className="text-red-500 text-sm mb-4">{planRequestsError}</p>
+                <button
+                  onClick={() => fetchPlanRequests()}
+                  className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors"
+                >
+                  Retry
+                </button>
+              </div>
+            ) : planRequests.length === 0 ? (
               <div className="text-center py-12 bg-stone-50 rounded-lg">
                 <FaHourglass className="mx-auto text-4xl sm:text-5xl mb-3 text-stone-400" />
-                <p className="text-stone-500 text-lg">No pending plan requests</p>
+                <p className="text-stone-500 text-lg">No plan requests</p>
+                <p className="text-stone-400 text-sm mt-1">Plan requests for your hosted events will appear here</p>
               </div>
             ) : (
               planRequests.map((request) => (
@@ -348,8 +413,27 @@ const Profile = () => {
                   key={request.id}
                   className="flex flex-col sm:flex-row gap-4 p-4 sm:p-5 border border-stone-200 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow"
                 >
-                  <div className="text-3xl sm:text-4xl bg-stone-100 rounded-full w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center flex-shrink-0">
-                    {request.requester.avatar}
+                  <div className="text-3xl sm:text-4xl bg-stone-100 rounded-full w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                    {request.requester.avatar && request.requester.avatar.startsWith('http') ? (
+                      <>
+                        <img
+                          src={request.requester.avatar}
+                          alt={request.requester.name}
+                          className="w-full h-full object-cover rounded-full"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.nextSibling.style.display = 'flex';
+                          }}
+                        />
+                        <span style={{ display: 'none' }} className="w-full h-full items-center justify-center">
+                          {request.requester.name.charAt(0).toUpperCase()}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="w-full h-full items-center justify-center text-center">
+                        {request.requester.avatar || request.requester.name.charAt(0).toUpperCase()}
+                      </span>
+                    )}
                   </div>
 
                   <div className="flex-1 min-w-0">
@@ -396,13 +480,13 @@ const Profile = () => {
                         </span>
                         <button
                           onClick={() => navigateToChat(request)}
-                          className="flex items-center justify-center px-4 py-2 text-sm sm:text-base font-medium text-white bg-blue-500 hover:bg-blue-600 rounded-lg transition-colors cursor-pointer"
+                          className="flex items-center justify-center px-4 py-2 text-sm sm:text-base font-medium text-white bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors cursor-pointer"
                         >
                           <FaComment className="mr-2" /> Chat Now
                         </button>
                       </div>
                     ) : (
-                      <span className="px-3 py-1 text-sm font-medium text-red-800 bg-red-100 rounded-full text-center cursor-pointer">
+                      <span className="px-3 py-1 text-sm font-medium text-red-800 bg-red-100 rounded-full text-center">
                         Rejected
                       </span>
                     )}
