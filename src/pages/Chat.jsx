@@ -30,8 +30,8 @@ const Chat = () => {
   if (isMobile) {
     if (selectedChat) {
       return (
-        <div className="h-[calc(100vh-80px)] mt-0 bg-white px-4 pb-4 overflow-hidden max-md:px-0">
-          <div className="h-full bg-white rounded-lg shadow-lg overflow-hidden">
+        <div className="h-[calc(100vh-80px)] mt-0 bg-gray-50 px-4 pb-4 overflow-hidden max-md:px-0">
+          <div className="h-full bg-white rounded-xl shadow-lg overflow-hidden">
             <ChatWindow
               selectedChat={selectedChat}
               onBack={handleBackToChatList}
@@ -42,8 +42,8 @@ const Chat = () => {
       );
     } else {
       return (
-        <div className="h-[calc(100vh-80px)] mt-0 bg-white px-4 pb-4 overflow-hidden max-md:px-0">
-          <div className="h-full bg-white rounded-lg shadow-lg overflow-hidden">
+        <div className="h-[calc(100vh-80px)] mt-0 bg-gray-50 px-4 pb-4 overflow-hidden max-md:px-0">
+          <div className="h-full bg-white rounded-xl shadow-lg overflow-hidden">
             <ChatList
               onSelectChat={handleChatSelect}
               selectedChatId={selectedChat?.id}
@@ -58,8 +58,8 @@ const Chat = () => {
   // On desktop, show both components side by side with proper margins
   return (
     <div className="h-[calc(100vh-80px)] mt-0 bg-gray-50 px-4 pb-4">
-      <div className="h-full bg-white rounded-lg shadow-lg overflow-hidden flex">
-        <div className="w-1/3 border-r border-gray-200">
+      <div className="h-full bg-white rounded-xl shadow-lg overflow-hidden flex">
+        <div className="w-1/3 border-r border-stone-200">
           <ChatList
             onSelectChat={handleChatSelect}
             selectedChatId={selectedChat?.id}
@@ -75,10 +75,11 @@ const Chat = () => {
             />
           </div>
         ) : (
-          <div className="flex-1 flex items-center justify-center bg-gray-50">
+          <div className="flex-1 flex items-center justify-center bg-stone-50">
             <div className="text-center p-8">
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Select a chat</h3>
-              <p className="text-gray-500">Choose a conversation to start messaging</p>
+              <div className="text-6xl mb-4">💬</div>
+              <h3 className="text-xl font-medium text-stone-800 mb-2">Select a chat</h3>
+              <p className="text-stone-500">Choose a conversation to start messaging</p>
             </div>
           </div>
         )}
