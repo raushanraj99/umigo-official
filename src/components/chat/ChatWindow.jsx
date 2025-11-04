@@ -55,17 +55,17 @@ export default function ChatWindow({ selectedChat, onBack }) {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center gap-3 border-b px-3 py-2">
-        <button className="lg:hidden text-sm px-2 py-1 border rounded" onClick={onBack}>Back</button>
-        <div className="font-medium">{selectedChat?.name || selectedChat?.type}</div>
+      <div className="flex items-center gap-3 border-b border-stone-200 px-4 py-3 bg-white">
+        <button className="lg:hidden text-sm px-3 py-2 border border-stone-200 rounded-lg hover:bg-stone-50 transition-colors" onClick={onBack}>Back</button>
+        <div className="font-medium text-stone-800">{selectedChat?.name || selectedChat?.type}</div>
       </div>
 
-      <div ref={listRef} className="flex-1 overflow-auto p-3 space-y-2 bg-white">
+      <div ref={listRef} className="flex-1 overflow-auto p-4 space-y-3 bg-stone-50">
         {messages.map((m) => (
-          <div key={m.id || `${m.chat_room_id}-${m.created_at}`} className="max-w-[80%] px-3 py-2 rounded-lg shadow-sm bg-gray-100">
-            <div className="text-sm whitespace-pre-wrap">{m.content}</div>
+          <div key={m.id || `${m.chat_room_id}-${m.created_at}`} className="max-w-[80%] px-4 py-3 rounded-xl shadow-sm bg-white border border-stone-200">
+            <div className="text-sm text-stone-800 whitespace-pre-wrap">{m.content}</div>
             {m.created_at && (
-              <div className="text-[10px] text-gray-500 mt-1">
+              <div className="text-[10px] text-stone-500 mt-2">
                 {new Date(m.created_at).toLocaleString()}
               </div>
             )}
@@ -73,15 +73,15 @@ export default function ChatWindow({ selectedChat, onBack }) {
         ))}
       </div>
 
-      <div className="border-t p-2 flex gap-2 bg-gray-50">
+      <div className="border-t border-stone-200 p-3 flex gap-3 bg-white">
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && onSend()}
-          placeholder="Type a message…"
-          className="flex-1 rounded-lg border px-3 py-2 outline-none"
+          placeholder="Type a message..."
+          className="flex-1 rounded-lg border border-stone-200 px-4 py-3 outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors"
         />
-        <button onClick={onSend} className="px-4 py-2 rounded-lg bg-blue-600 text-white">Send</button>
+        <button onClick={onSend} className="px-6 py-3 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-medium transition-colors">Send</button>
       </div>
     </div>
   );

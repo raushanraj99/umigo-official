@@ -363,6 +363,78 @@ const hangoutService = {
       console.error('Error fetching nearby hangouts:', error);
       throw error.response?.data || error;
     }
+  },
+
+  /**
+   * Fetches all plan requests (join requests) for the current user's hosted hangouts
+   * This combines data from multiple hangouts to show all pending requests in one place
+   * @returns {Promise<Array>} Array of plan requests in the format expected by Profile.jsx
+   */
+  getPlanRequests: async () => {
+    try {
+      // First get current user information
+      const currentUserResponse = await api.get('/api/user/me');
+      const userId = currentUserResponse.user?.user_id || currentUserResponse.user?.id;
+
+      if (!userId) {
+        throw new Error('User ID not found');
+      }
+
+      // Get all hangouts hosted by the current user
+      const hostedHangoutsResponse = await api.get(`/api/hangouts/user/${userId}/hosted`);
+
+      // Handle case where user doesn't have hosted hangouts yet
+      if (!hostedHangoutsResponse?.hangouts || !Array.isArray(hostedHangoutsResponse.hangouts)) {
+        return [];
+      }
+
+      // For each hosted hangout, fetch join requests
+      const planRequests = [];
+
+      for (const hangout of hostedHangoutsResponse.hangouts) {
+        if (hangout.status === 'active') {
+          try {
+            // Use the correct API endpoint: GET /api/hangouts/:id/requests
+            const joinRequestsResponse = await api.get(`/api/hangouts/${hangout.id}/requests`);
+
+            if (joinRequestsResponse?.join_requests && Array.isArray(joinRequestsResponse.join_requests)) {
+              // Transform join requests to plan requests format
+              const transformedRequests = joinRequestsResponse.join_requests
+                .filter(request => request.status === 'pending' || request.status === 'approved')
+                .map(request => ({
+                  id: request.id,
+                  title: request.hangout?.title || hangout.title,
+                  location: hangout.address || 'Location not specified',
+                  time: hangout.start_time,
+                  requester: {
+                    id: request.user_id,
+                    name: request.user?.name || 'Unknown User',
+                    avatar: request.user?.image_url || request.user?.name?.charAt(0)?.toUpperCase() || '👤'
+                  },
+                  status: request.status,
+                  hangout_id: hangout.id
+                }));
+
+              planRequests.push(...transformedRequests);
+            }
+          } catch (error) {
+            // If we can't fetch requests for a specific hangout, continue with others
+            // This might happen if the user is not the host or if there are permission issues
+            console.warn(`Failed to fetch requests for hangout ${hangout.id}:`, error);
+
+            // If it's a permission error (403), log it but continue
+            if (error.response?.status === 403) {
+              console.warn(`User does not have permission to view requests for hangout ${hangout.id}`);
+            }
+          }
+        }
+      }
+
+      return planRequests;
+    } catch (error) {
+      console.error('Error fetching plan requests:', error);
+      throw error.response?.data || error;
+    }
   }
 };
 
