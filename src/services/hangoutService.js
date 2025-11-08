@@ -86,7 +86,7 @@ const hangoutService = {
         limit: Math.min(parseInt(filters.limit) || 20, 100)
       };
 
-      const response = await api.get('/api/hangouts', { 
+      const response = await api.get('/api/hangouts', {
         params: safeFilters,
         paramsSerializer: params => {
           // Handle array parameters like tags
@@ -101,25 +101,27 @@ const hangoutService = {
             .join('&');
         }
       });
-      
-      // Ensure we always return a consistent structure
+
+      // const response = await api.get('/api/hangouts');
+
+      // Ensure we always return a consistent structure with proper error handling
       if (response && response) {
         return response;
       }
-      
-      return { hangouts: [], total: 0, limit: safeFilters.limit, offset: safeFilters.offset || 0, hasMore: false };
-      
+
+      return { hangouts: [], total: 0, limit: safeFilters.limit, offset: safeFilters.offset || 0, has_more: false };
+
     } catch (error) {
       console.error('Error fetching hangouts:', error);
-      
+
       // Return empty results on error to prevent UI breaking
-      return { 
-        hangouts: [], 
-        total: 0, 
-        limit: filters.limit || 20, 
-        offset: filters.offset || 0, 
-        hasMore: false,
-        error: error.response?.data?.message || 'Failed to fetch hangouts'
+      return {
+        hangouts: [],
+        total: 0,
+        limit: filters.limit || 20,
+        offset: filters.offset || 0,
+        has_more: false,
+        error: error.response?.data?.error || error.message || 'Failed to fetch hangouts'
       };
     }
   },
@@ -142,16 +144,17 @@ const hangoutService = {
     try {
       const requiredFields = ['title', 'start_time'];
       const missingFields = requiredFields.filter(field => !hangoutData[field]);
-      
+
       if (missingFields.length > 0) {
         throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
       }
 
       const response = await api.post('/api/hangouts', {
         ...hangoutData,
-        tags: Array.isArray(hangoutData.tags) ? hangoutData.tags : []
+        tags: Array.isArray(hangoutData.tags) ? hangoutData.tags : [],
+        is_public: true // All hangouts are public by default
       });
-      
+
       return response.data;
     } catch (error) {
       console.error('Error creating hangout:', error);
@@ -172,7 +175,7 @@ const hangoutService = {
 
       const response = await api.get(`/api/hangouts/${hangoutId}`);
       console.log("hangout response data:", response);
-      return response;
+      return response.data;
     } catch (error) {
       console.error('Error fetching hangout details:', error);
       throw error.response?.data || error;
@@ -250,6 +253,37 @@ const hangoutService = {
   },
 
   /**
+   * Checks if the current user has joined a hangout
+   * @param {string} hangoutId - ID of the hangout to check
+   * @returns {Promise<boolean>} Whether the user has joined the hangout
+   */
+  hasUserJoinedHangout: async (hangoutId) => {
+    try {
+      if (!hangoutId) {
+        throw new Error('Hangout ID is required');
+      }
+
+      // Get current user info
+      const currentUserResponse = await api.get('/api/user/me');
+      const userId = currentUserResponse.data?.user?.user_id || currentUserResponse.data?.user?.id;
+
+      if (!userId) {
+        return false;
+      }
+
+      // Get user's joined hangouts
+      const joinedHangoutsResponse = await api.get(`/api/hangouts/users/${userId}/joined`);
+      const joinedHangouts = joinedHangoutsResponse.data?.hangouts || [];
+
+      // Check if the hangout ID is in the joined hangouts
+      return joinedHangouts.some(hangout => hangout.id === hangoutId);
+    } catch (error) {
+      console.error('Error checking if user joined hangout:', error);
+      return false;
+    }
+  },
+
+  /**
    * Fetches join requests for a hangout (host only)
    * @param {string} hangoutId - ID of the hangout
    * @returns {Promise<{join_requests: JoinRequest[], hangout_id: string}>} List of join requests
@@ -302,12 +336,14 @@ const hangoutService = {
    * @returns {Promise<{hangouts: Array<{id: string, title: string, status: string, start_time: string, created_at: number}>, user_id: string}>} List of hosted hangouts
    */
   getUserHostedHangouts: async (userId) => {
+    console.log("going to fetch hangouts for user:", userId)
     try {
       if (!userId) {
         throw new Error('User ID is required');
       }
 
       const response = await api.get(`/api/hangouts/user/${userId}/hosted`);
+      console.log(response);
       return response;
     } catch (error) {
       console.error('Error fetching hosted hangouts:', error);

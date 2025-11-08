@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useCommon } from '../context/CommonContext';
+import { useAuth } from '../context/AuthContext';
+import { useLocation } from 'react-router-dom';
 import SearchBar from '../components/common/SearchBar';
 import TabSwitcher from '../components/common/TabSwitcher';
 import SpotlightCard from '../components/common/SpotlightCard';
@@ -10,18 +12,19 @@ import { toast } from 'react-toastify';
 import Footer from '../components/layout/Footer';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import {useHangout} from '../context/HangoutContext';
-import { chatAPI } from '../services/chatAPI';
 
 function Landing() {
   const ITEMS_PER_PAGE = 9;
   const [query, setQuery] = useState('');
   const [activeTab, setActiveTab] = useState('Plans'); // Make sure it's capitalized to match TabSwitcher
   const { glowEnabled, setGlowEnabled, setGlowMode, showSearch, glowUsers } = useCommon();
+  const { isAuthenticated } = useAuth();
+  const location = useLocation();
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [itemsToShow, setItemsToShow] = useState(ITEMS_PER_PAGE);
-  const { getHangouts, createHangout } = useHangout();
+  const { getHangouts, createHangout, getHangoutDetails } = useHangout();
   const [samplePlans, setSamplePlans] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -29,7 +32,7 @@ function Landing() {
   const [approachPeople, setApproachPeople] = useState({});
   const [sampleUsers, setSampleUsers] = useState([]);
   
-  // Handle joining a plan
+  // Handle joining a plan (backward compatibility)
   const handleJoin = useCallback((planId) => {
     setJoinedPlans(prev => ({
       ...prev,
@@ -41,9 +44,17 @@ function Landing() {
   // Set initial tab
   useEffect(() => {
     const fetchHangouts = async () => {
+      // Only fetch hangouts if user is authenticated
+      if (!isAuthenticated) {
+        console.log('User not authenticated, skipping hangout fetch');
+        setSamplePlans([]);
+        setIsLoading(false);
+        return;
+      }
+
       setIsLoading(true);
       setError(null);
-      
+
       try {
         const response = await getHangouts({ status: 'active' });
         // If there was an error in the response but we still got a response object
@@ -54,22 +65,26 @@ function Landing() {
           setSamplePlans([]);
           return;
         }
-        
+
+        console.log("Response for hangouts on landing.jsx:", response)
+          
         // If we have hangouts data, format it
         if (response.hangouts && Array.isArray(response.hangouts)) {
+          console.log('Fetched hangouts:', response.hangouts.length, 'hangouts');
           const formattedPlans = response.hangouts.map(plan => ({
             ...plan,
             id: plan._id || plan.id, // Handle both _id and id
             name: plan.creator?.name || plan.host?.name || 'Anonymous',
             subtitle: plan.title || 'No title',
-            time: plan.start_time || plan.time ? 
-              new Date(plan.start_time || plan.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 
+            time: plan.start_time || plan.time ?
+              new Date(plan.start_time || plan.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) :
               'Time not set',
             location: plan.location || plan.address || 'Location not specified',
-            bannerImage: plan.imageUrl || plan.bannerImage || 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1200&auto=format&fit=crop',
+            bannerImage: plan.banner_image_url || plan.bannerImage || 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1200&auto=format&fit=crop',
             avatarUrl: plan.creator?.profileImage || plan.host?.profileImage || plan.avatarUrl || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200&auto=format&fit=crop'
           }));
-          
+
+          console.log('Formatted plans:', formattedPlans.length, 'plans');
           setSamplePlans(formattedPlans);
         } else {
           console.warn('No hangouts data in response:', response);
@@ -90,25 +105,23 @@ function Landing() {
     if (samplePlans.length === 0) {
       fetchHangouts();
     }
-  }, [getHangouts]);
+  }, [getHangouts, isAuthenticated]);
   
 
-  // Handle glow mode changes and update tab accordingly
+  // Handle glow mode changes and update user data accordingly
   useEffect(() => {
     const handleGlowModeChange = (e) => {
       const newGlowState = e.detail;
       setGlowMode(newGlowState);
-      // Switch to Spotlight only if glow mode is enabled and we're not already on Spotlight
-      if (newGlowState && activeTab !== 'Spotlight') {
-        setSampleUsers(glowUsers);
-        setActiveTab('Spotlight');
-        // sampleUsers = glowUsers;
-        console.log('Glow users:', glowUsers);
-        console.log('Sample users:', sampleUsers);
-      } else if (!newGlowState && activeTab === 'Spotlight') {
-        // If glow mode is turned off and we're on Spotlight, switch to Plans
+      // Update sample users based on glow mode state
+      if (newGlowState) {
+        setSampleUsers(Array.isArray(glowUsers) ? glowUsers : []);
+      } else {
         setSampleUsers([]);
-        setActiveTab('Plans');
+        // Only switch back to Plans if we're currently on Spotlight
+        if (activeTab === 'Spotlight') {
+          setActiveTab('Plans');
+        }
       }
     };
 
@@ -116,7 +129,7 @@ function Landing() {
     return () => {
       window.removeEventListener('glowModeChange', handleGlowModeChange);
     };
-  }, [setGlowMode, activeTab]);
+  }, [setGlowMode, activeTab, glowUsers]);
 
  
   useEffect(() => {
@@ -158,9 +171,9 @@ function Landing() {
   // Get current items
   const currentPlans = useMemo(() => {
     const result = filteredPlans.slice(0, itemsToShow);
-    
+    console.log('Current plans to display:', result.length, 'activeTab:', activeTab, 'glowEnabled:', glowEnabled);
     return result;
-  }, [filteredPlans, itemsToShow]);
+  }, [filteredPlans, itemsToShow, activeTab, glowEnabled]);
 
   const currentSpotlight = useMemo(
     () => filteredSpotlight.slice(0, itemsToShow),
@@ -194,14 +207,23 @@ function Landing() {
     }
   }, [activeTab, currentPlans.length, filteredPlans.length, currentSpotlight.length, filteredSpotlight.length]);
 
-  //chat redirect 
-  const onChat = (id) => {
-    console.log(id);
+  //chat redirect - opens WhatsApp group chat
+  const onChat = async (id) => {
+    console.log('Opening chat for hangout:', id);
     try {
-      chatAPI.createDirect(id);
-      toast.success("Start your chat now!");
+      // Get hangout details to access whatsapp_url
+      const hangoutDetails = await getHangoutDetails(id);
+
+      if (hangoutDetails && hangoutDetails.whatsapp_url) {
+        // Open WhatsApp URL in new tab
+        window.open(hangoutDetails.whatsapp_url, '_blank', 'noopener,noreferrer');
+        toast.success("Opening WhatsApp group chat!");
+      } else {
+        toast.error("WhatsApp link not available for this hangout");
+      }
     } catch (error) {
-      toast.error("Wait for now!");
+      console.error('Error opening chat:', error);
+      toast.error("Unable to open chat at this time");
     }
     setSelectedPlan(null);
   }
@@ -247,8 +269,10 @@ function Landing() {
               endMessage={
                 <p className="text-center text-gray-500 py-4">
                   {activeTab === 'Plans' && currentPlans.length > 0 ? "You've seen all plans!" :
-                    currentSpotlight.length > 0 ? "You've seen all spotlight users!" :
-                      "No items to display"}
+                    activeTab === 'Plans' && !isAuthenticated ? "Please log in to view plans" :
+                      currentSpotlight.length > 0 ? "You've seen all spotlight users!" :
+                        activeTab === 'Spotlight' && !glowEnabled ? "Enable Glow Mode to see users nearby" :
+                          "No items to display"}
                 </p>
               }
               className="w-full"
@@ -270,16 +294,29 @@ function Landing() {
                     >
                     
                       <PlanCard
-                        // key={p.id} 
+                        // key={p.id}
+                        hangoutId={p.id} // Add hangoutId for API integration
                         glow={glowEnabled}
                         bannerImage={p.bannerImage}
-                        avatarUrl={p.avatarUrl}
-                        name={p.host.name}
+                        avatarUrl={p.host.image_url}
+                        name={p.host?.name || p.name}
                         subtitle={p.subtitle}
-                        time={p.time}
+                        start_time={p.start_time}
                         location={p.location}
-                        join={!!joinedPlans[p.name]}
-                        onJoin={() => handleJoin(p.name)}
+                        join={!!joinedPlans[p.id]} // Use p.id instead of p.name for consistency
+                        onJoin={(e, success) => {
+                          if (success) {
+                            // Successfully joined via API
+                            setJoinedPlans(prev => ({
+                              ...prev,
+                              [p.id]: true
+                            }));
+                            toast.success('Join request sent!');
+                          } else {
+                            // Using old callback method
+                            handleJoin(p.id);
+                          }
+                        }}
                         onCardClick={() => setSelectedPlan(p)}
                       
                       />
@@ -315,22 +352,37 @@ function Landing() {
 
 
       {/* Footer - Positioned at bottom */}
-      <footer className="mt-auto border-t border-[#ff5500]/10">
-        <Footer />
-      </footer>
+      {location.pathname === '/' && (
+        <footer className="mt-auto border-t border-[#ff5500]/10">
+          <Footer />
+        </footer>
+      )}
 
       {/* Plan Detail Modal */}
       {selectedPlan && (
         <PlanDetailCard
           plan={selectedPlan}
+          hangoutId={selectedPlan?.id} // Add hangoutId for API integration
           onClose={() => setSelectedPlan(null)}
           onApproach={() => {
             // toast.success(`Approach request sent to ${selectedPlan?.name}!`);
             setSelectedPlan(null);
           }}
           onChat={() => onChat(selectedPlan?.id)}
-          join={!!joinedPlans[selectedPlan.name]}
-          onJoin={() => handleJoin(selectedPlan.name)}
+          join={!!joinedPlans[selectedPlan?.id]} // Use ID instead of name
+          onJoin={(e, success) => {
+            if (success) {
+              // Successfully joined via API
+              setJoinedPlans(prev => ({
+                ...prev,
+                [selectedPlan.id]: true
+              }));
+              toast.success('Join request sent!');
+            } else {
+              // Using old callback method
+              handleJoin(selectedPlan.id);
+            }
+          }}
         />
       )}
 
@@ -344,9 +396,8 @@ function Landing() {
             setSelectedUser(null);
           }}
           onChat={() => {
-            // toast.info('Chat coming soon');
-            // setSelectedUser(null);
-            onChat(selectedUser.user_id);
+            toast.info('Direct chat with users coming soon!');
+            setSelectedUser(null);
           }}
         />
       )}

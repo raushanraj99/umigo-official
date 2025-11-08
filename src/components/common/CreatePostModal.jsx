@@ -10,9 +10,16 @@ const CreatePostModal = ({ isOpen, onClose }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
-    plan: '',
+    title: '',
+    description: '',
+    vibe: '',
     location: '',
-    time: ''
+    address: '',
+    tags: '',
+    start_time: '',
+    end_time: '',
+    whatsapp_url: '',
+    max_participants: 10
   });
 
   // Handle click outside
@@ -60,10 +67,19 @@ const CreatePostModal = ({ isOpen, onClose }) => {
 
   const validateField = (name, value) => {
     let error = '';
-    if (!value.trim()) {
+    if (
+      ['title', 'vibe', 'location', 'start_time'].includes(name) &&
+      (!value || (typeof value === 'string' && !value.trim()))
+    ) {
       error = 'This field is required';
-    } else if (name === 'time' && !/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(value)) {
+    } else if (name === 'start_time' && value && !/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(value)) {
       error = 'Please enter a valid time (HH:MM)';
+    } else if (name === 'end_time' && value && !/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(value)) {
+      error = 'Please enter a valid time (HH:MM)';
+    } else if (name === 'max_participants' && value && (isNaN(value) || value < 1 || value > 100)) {
+      error = 'Max participants must be between 1 and 100';
+    } else if (name === 'whatsapp_url' && value && !/^https?:\/\/.+/.test(value)) {
+      error = 'Please enter a valid URL starting with http:// or https://';
     }
     return error;
   };
@@ -127,15 +143,16 @@ const CreatePostModal = ({ isOpen, onClose }) => {
     return isValid;
   };
 
-  const formatToISODateTime = (timeString) => {
+  const formatToISODateTime = (timeString, dateOffset = 0) => {
     if (!timeString) return '';
-    
-    // Get current date in YYYY-MM-DD format
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    
+
+    // Get date in YYYY-MM-DD format (can offset by days for end_time)
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + dateOffset);
+    const year = targetDate.getFullYear();
+    const month = String(targetDate.getMonth() + 1).padStart(2, '0');
+    const day = String(targetDate.getDate()).padStart(2, '0');
+
     // Combine with the provided time and add seconds and timezone
     return `${year}-${month}-${day}T${timeString}:00Z`;
   };
@@ -255,45 +272,64 @@ const CreatePostModal = ({ isOpen, onClose }) => {
 
     try {
       console.log('Starting hangout creation process...');
-      
+
       // Get coordinates from location name
       const coordinates = await getCoordinatesFromAddress(formData.location);
       console.log('Coordinates obtained:', coordinates);
-      
-      // Format the time to ISO format with timezone
-      const formattedTime = formatToISODateTime(formData.time);
-      console.log('Formatted time:', formattedTime);
-      
+
+      // Format the times to ISO format with timezone
+      const formattedStartTime = formatToISODateTime(formData.start_time);
+      const formattedEndTime = formData.end_time ? formatToISODateTime(formData.end_time) : null;
+      console.log('Formatted start time:', formattedStartTime);
+      if (formattedEndTime) console.log('Formatted end time:', formattedEndTime);
+
+      // Parse tags from comma-separated string to array
+      const tagsArray = formData.tags ? formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
+
       // Transform the form data to match the required API format
       const hangoutData = {
-        title: formData.plan.trim(),
+        title: formData.title.trim(),
+        description: formData.description.trim() || undefined,
+        vibe: formData.vibe.trim(),
         location: `POINT(${coordinates.lon} ${coordinates.lat})`, // Format as POINT(longitude latitude)
-        start_time: formattedTime
+        address: formData.address.trim() || formData.location.trim(),
+        tags: tagsArray,
+        start_time: formattedStartTime,
+        end_time: formattedEndTime || undefined,
+        whatsapp_url: formData.whatsapp_url.trim() || undefined,
+        max_participants: parseInt(formData.max_participants) || 10
       };
-      
+
       console.log("Hangout data being sent:", hangoutData);
-      
+
       const response = await hangoutService.createHangout(hangoutData);
       console.log("Hangout created successfully:", response);
-      
+
       toast.success('Hangout created successfully!');
-      
+
       // Reset form
       setFormData({
-        plan: '',
+        title: '',
+        description: '',
+        vibe: '',
         location: '',
-        time: ''
+        address: '',
+        tags: '',
+        start_time: '',
+        end_time: '',
+        whatsapp_url: '',
+        max_participants: 10
       });
       setErrors({});
       setTouched({});
-      
+
       onClose();
-      
+
     } catch (error) {
       console.error('Error creating hangout:', error);
-      
+
       let errorMessage = 'Failed to create hangout';
-      
+
       if (error.message && error.message.includes('coordinates')) {
         errorMessage = 'Could not find the location. Please try a more specific address or use a major city name.';
       } else if (error.response?.data?.message) {
@@ -301,7 +337,7 @@ const CreatePostModal = ({ isOpen, onClose }) => {
       } else if (error.message) {
         errorMessage = error.message;
       }
-      
+
       toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -320,9 +356,16 @@ const CreatePostModal = ({ isOpen, onClose }) => {
   useEffect(() => {
     if (!isOpen) {
       setFormData({
-        plan: '',
+        title: '',
+        description: '',
+        vibe: '',
         location: '',
-        time: ''
+        address: '',
+        tags: '',
+        start_time: '',
+        end_time: '',
+        whatsapp_url: '',
+        max_participants: 10
       });
       setErrors({});
       setTouched({});
@@ -368,59 +411,209 @@ const CreatePostModal = ({ isOpen, onClose }) => {
           </div>
 
           {/* Form Content */}
-          <div className="p-6 space-y-4">
-            {/* Plan Description */}
+          <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
+            {/* Title */}
             <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
               <input
                 type="text"
-                placeholder="What's the plan..."
-                value={formData.plan}
-                onChange={(e) => handleInputChange('plan', e.target.value)}
-                onBlur={handleBlur('plan')}
+                placeholder="What's the plan title..."
+                value={formData.title}
+                onChange={(e) => handleInputChange('title', e.target.value)}
+                onBlur={handleBlur('title')}
                 onKeyDown={handleKeyDown}
-                className={`w-full px-4 py-3 border ${errors.plan && touched.plan ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff5500] focus:border-transparent placeholder-gray-400`}
+                className={`w-full px-4 py-3 border ${errors.title && touched.title ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff5500] focus:border-transparent placeholder-gray-400`}
                 required
                 disabled={isSubmitting}
               />
-              {errors.plan && touched.plan && (
-                <p className="mt-1 text-sm text-red-600">{errors.plan}</p>
+              {errors.title && touched.title && (
+                <p className="mt-1 text-sm text-red-600">{errors.title}</p>
+              )}
+            </div>
+
+            {/* Description */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <textarea
+                placeholder="Describe your hangout (optional)"
+                value={formData.description}
+                onChange={(e) => handleInputChange('description', e.target.value)}
+                onBlur={handleBlur('description')}
+                rows={3}
+                className={`w-full px-4 py-3 border ${errors.description && touched.description ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff5500] focus:border-transparent placeholder-gray-400 resize-none`}
+                disabled={isSubmitting}
+              />
+              {errors.description && touched.description && (
+                <p className="mt-1 text-sm text-red-600">{errors.description}</p>
+              )}
+            </div>
+
+            {/* Vibe */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Vibe *</label>
+              <select
+                value={formData.vibe}
+                onChange={(e) => handleInputChange('vibe', e.target.value)}
+                onBlur={handleBlur('vibe')}
+                className={`w-full px-4 py-3 border ${errors.vibe && touched.vibe ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff5500] focus:border-transparent`}
+                required
+                disabled={isSubmitting}
+              >
+                <option value="">Select a vibe</option>
+                <option value="coffee">Coffee</option>
+                <option value="foodie">Foodie</option>
+                <option value="party">Party</option>
+                <option value="fitness">Fitness</option>
+                <option value="gaming">Gaming</option>
+                <option value="movies">Movies</option>
+                <option value="music">Music</option>
+                <option value="reading">Reading</option>
+                <option value="travel">Travel</option>
+                <option value="tech">Tech</option>
+                <option value="art">Art</option>
+                <option value="sports">Sports</option>
+                <option value="meditation">Meditation</option>
+                <option value="shopping">Shopping</option>
+                <option value="hiking">Hiking</option>
+                <option value="cycling">Cycling</option>
+                <option value="dj-dance">DJ Dance</option>
+                <option value="camping-bonefire">Camping</option>
+                <option value="swimming">Swimming</option>
+                <option value="long-drives">Long Drives</option>
+                <option value="jogging">Jogging</option>
+                <option value="pets">Pets</option>
+                <option value="photography">Photography</option>
+                <option value="cooking">Cooking</option>
+                <option value="podcast">Podcast</option>
+              </select>
+              {errors.vibe && touched.vibe && (
+                <p className="mt-1 text-sm text-red-600">{errors.vibe}</p>
               )}
             </div>
 
             {/* Location */}
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Location (e.g., Mumbai, Delhi, Bangalore)"
-                value={formData.location}
-                onChange={(e) => handleInputChange('location', e.target.value)}
-                onBlur={handleBlur('location')}
-                className={`w-full px-4 py-3 border ${errors.location && touched.location ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff5500] focus:border-transparent placeholder-gray-400 pr-10`}
-                required
-                disabled={isSubmitting}
-              />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Location *</label>
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="City or location (e.g., Mumbai, Delhi, Bangalore)"
+                  value={formData.location}
+                  onChange={(e) => handleInputChange('location', e.target.value)}
+                  onBlur={handleBlur('location')}
+                  className={`w-full px-4 py-3 border ${errors.location && touched.location ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff5500] focus:border-transparent placeholder-gray-400 pr-10`}
+                  required
+                  disabled={isSubmitting}
+                />
+                <svg className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
               {errors.location && touched.location && (
                 <p className="mt-1 text-sm text-red-600">{errors.location}</p>
               )}
-              <svg className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
             </div>
 
-            {/* Time */}
-            <div className="relative">
+            {/* Address */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Specific Address</label>
+              <input
+                type="text"
+                placeholder="Specific address (optional)"
+                value={formData.address}
+                onChange={(e) => handleInputChange('address', e.target.value)}
+                onBlur={handleBlur('address')}
+                className={`w-full px-4 py-3 border ${errors.address && touched.address ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff5500] focus:border-transparent placeholder-gray-400`}
+                disabled={isSubmitting}
+              />
+              {errors.address && touched.address && (
+                <p className="mt-1 text-sm text-red-600">{errors.address}</p>
+              )}
+            </div>
+
+            {/* Tags */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Tags</label>
+              <input
+                type="text"
+                placeholder="Tags (comma separated, e.g., coffee, social, networking)"
+                value={formData.tags}
+                onChange={(e) => handleInputChange('tags', e.target.value)}
+                onBlur={handleBlur('tags')}
+                className={`w-full px-4 py-3 border ${errors.tags && touched.tags ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff5500] focus:border-transparent placeholder-gray-400`}
+                disabled={isSubmitting}
+              />
+              {errors.tags && touched.tags && (
+                <p className="mt-1 text-sm text-red-600">{errors.tags}</p>
+              )}
+            </div>
+
+            {/* Start Time */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Start Time *</label>
               <input
                 type="time"
-                value={formData.time}
-                onChange={(e) => handleInputChange('time', e.target.value)}
-                onBlur={handleBlur('time')}
-                className={`w-full px-3 py-2 border ${errors.time && touched.time ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff5500] focus:border-transparent`}
+                value={formData.start_time}
+                onChange={(e) => handleInputChange('start_time', e.target.value)}
+                onBlur={handleBlur('start_time')}
+                className={`w-full px-4 py-3 border ${errors.start_time && touched.start_time ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff5500] focus:border-transparent`}
                 required
                 disabled={isSubmitting}
               />
-              {errors.time && touched.time && (
-                <p className="mt-1 text-sm text-red-600">{errors.time}</p>
+              {errors.start_time && touched.start_time && (
+                <p className="mt-1 text-sm text-red-600">{errors.start_time}</p>
+              )}
+            </div>
+
+            {/* End Time */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">End Time</label>
+              <input
+                type="time"
+                value={formData.end_time}
+                onChange={(e) => handleInputChange('end_time', e.target.value)}
+                onBlur={handleBlur('end_time')}
+                className={`w-full px-4 py-3 border ${errors.end_time && touched.end_time ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff5500] focus:border-transparent`}
+                disabled={isSubmitting}
+              />
+              {errors.end_time && touched.end_time && (
+                <p className="mt-1 text-sm text-red-600">{errors.end_time}</p>
+              )}
+            </div>
+
+            {/* WhatsApp URL */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">WhatsApp Group Link</label>
+              <input
+                type="url"
+                placeholder="https://chat.whatsapp.com/..."
+                value={formData.whatsapp_url}
+                onChange={(e) => handleInputChange('whatsapp_url', e.target.value)}
+                onBlur={handleBlur('whatsapp_url')}
+                className={`w-full px-4 py-3 border ${errors.whatsapp_url && touched.whatsapp_url ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff5500] focus:border-transparent placeholder-gray-400`}
+                disabled={isSubmitting}
+              />
+              {errors.whatsapp_url && touched.whatsapp_url && (
+                <p className="mt-1 text-sm text-red-600">{errors.whatsapp_url}</p>
+              )}
+            </div>
+
+            {/* Max Participants */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Max Participants</label>
+              <input
+                type="number"
+                min="1"
+                max="100"
+                value={formData.max_participants}
+                onChange={(e) => handleInputChange('max_participants', e.target.value)}
+                onBlur={handleBlur('max_participants')}
+                className={`w-full px-4 py-3 border ${errors.max_participants && touched.max_participants ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff5500] focus:border-transparent`}
+                disabled={isSubmitting}
+              />
+              {errors.max_participants && touched.max_participants && (
+                <p className="mt-1 text-sm text-red-600">{errors.max_participants}</p>
               )}
             </div>
 
@@ -428,21 +621,21 @@ const CreatePostModal = ({ isOpen, onClose }) => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="text-2xl w-fit bg-[#ff5500] text-white py-2 px-10 rounded-2xl hover:bg-[#e64d00] transition-colors font-medium mt-6 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="w-full bg-[#ff5500] text-white py-3 px-6 rounded-xl hover:bg-[#e64d00] transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
                 <>
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  Creating...
+                  Creating Hangout...
                 </>
               ) : (
-                'Post'
+                'Create Hangout'
               )}
             </button>
 
-            {/* Location Help Text */}
+            {/* Help Text */}
             <p className="text-xs text-gray-500 mt-2">
-              Tip: Use major city names for better location recognition (e.g., "Mumbai", "Delhi", "Bangalore")
+              * Required fields. Use major city names for better location recognition.
             </p>
           </div>
         </div>

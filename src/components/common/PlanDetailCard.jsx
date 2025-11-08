@@ -1,11 +1,128 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { IoArrowBack } from 'react-icons/io5';
 import { BsChatDots, BsClock, BsFilm } from 'react-icons/bs';
 // import { IoLocation } from 'react-icons/io5';
 import { NavLink } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import hangoutService from '../../services/hangoutService';
+import { useHangout } from '../../context/HangoutContext';
 
-function PlanDetailCard({ plan, onClose, onApproach, onChat, join, onJoin }) {
+/**
+ * PlanDetailCard Component
+ *
+ * Displays detailed information about a hangout with join functionality.
+ * When hangoutId is provided, uses real API to join hangouts.
+ * When onJoin callback is provided, calls it for backward compatibility.
+ *
+ * @param {Object} plan - Hangout plan data
+ * @param {string} hangoutId - Hangout ID for API calls (required for API integration)
+ * @param {function} onClose - Callback when modal is closed
+ * @param {function} onApproach - Callback when approach is clicked
+ * @param {function} onChat - Callback when chat is clicked
+ * @param {boolean} join - Initial join state (for backward compatibility)
+ * @param {function} onJoin - Callback when join is clicked (optional)
+ */
+function PlanDetailCard({ plan, hangoutId, onClose, onApproach, onChat, join, onJoin }) {
   if (!plan) return null;
+
+  const { hasUserJoinedHangout } = useHangout();
+  const [isJoining, setIsJoining] = useState(false);
+  const [hasRequested, setHasRequested] = useState(join);
+  const [hasJoined, setHasJoined] = useState(false);
+  const [checkingJoinStatus, setCheckingJoinStatus] = useState(false);
+
+  // Sync local state with join prop when it changes externally
+  useEffect(() => {
+    setHasRequested(join);
+  }, [join]);
+
+  // Check if user has joined this hangout
+  useEffect(() => {
+    const checkJoinStatus = async () => {
+      if (hangoutId) {
+        setCheckingJoinStatus(true);
+        try {
+          const joined = await hasUserJoinedHangout(hangoutId);
+          setHasJoined(joined);
+        } catch (error) {
+          console.error('Error checking join status:', error);
+          setHasJoined(false);
+        } finally {
+          setCheckingJoinStatus(false);
+        }
+      }
+    };
+
+    checkJoinStatus();
+  }, [hangoutId, hasUserJoinedHangout]);
+
+  const handleJoin = async (e) => {
+    e.stopPropagation();
+
+    // If already requested or currently joining, don't do anything
+    if (hasRequested || isJoining) {
+      return;
+    }
+
+    // Call onJoin callback if it exists (for backward compatibility)
+    if (onJoin) {
+      onJoin(e, false); // Pass false to indicate not using API
+      return;
+    }
+
+    // If no hangoutId provided, show error
+    if (!hangoutId) {
+      toast.error('Unable to join hangout - missing hangout information');
+      return;
+    }
+
+    try {
+      setIsJoining(true);
+
+      // Make API call to join hangout using POST /api/hangouts/:id/join
+      const response = await hangoutService.joinHangout(hangoutId);
+
+      // Update local state to show "Requested" status
+      setHasRequested(true);
+
+      // If join was approved immediately, mark as joined
+      if (response.status === 'approved') {
+        setHasJoined(true);
+      }
+
+      // Notify parent component of the change
+      if (onJoin) {
+        onJoin(e, true); // Pass true to indicate successful join
+      }
+
+      toast.success(`Join request sent for ${plan.name}'s hangout!`, {
+        position: 'top-center',
+        autoClose: 3000,
+      });
+
+      console.log('Join request successful:', response);
+    } catch (error) {
+      console.error('Error joining hangout:', error);
+
+      let errorMessage = 'Failed to send join request';
+      if (error.response?.status === 401) {
+        errorMessage = 'Please log in to join hangouts';
+      } else if (error.response?.status === 403) {
+        errorMessage = 'You do not have permission to join this hangout';
+      } else if (error.response?.status === 404) {
+        errorMessage = 'Hangout not found or no longer available';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      toast.error(errorMessage, {
+        position: 'top-center',
+        autoClose: 4000,
+      });
+    } finally {
+      setIsJoining(false);
+    }
+  };
 
   const handleApproach = (e) => {
     e.stopPropagation();
@@ -14,6 +131,16 @@ function PlanDetailCard({ plan, onClose, onApproach, onChat, join, onJoin }) {
 
   const handleChat = (e) => {
     e.stopPropagation();
+
+    // Only allow chat access if user has joined the hangout
+    if (!hasJoined) {
+      toast.error('You must join the hangout first to access the chat!', {
+        position: 'top-center',
+        autoClose: 3000,
+      });
+      return;
+    }
+
     if (onChat) onChat();
   };
 
@@ -86,24 +213,27 @@ function PlanDetailCard({ plan, onClose, onApproach, onChat, join, onJoin }) {
           {/* Action Buttons */}
           <div className="flex space-x-4">
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                if (onJoin) onJoin();
-                onApproach(e);
-              }}
-              className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors cursor-pointer ${join
-                ? 'bg-[#909090] text-white hover:bg-[#575757]'
-                : 'bg-orange-500 text-white hover:bg-orange-600'
-                }`}
+              onClick={handleJoin}
+              className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors cursor-pointer ${
+                hasRequested || isJoining
+                  ? 'bg-[#909090] text-white hover:bg-[#575757] cursor-not-allowed'
+                  : 'bg-orange-500 text-white hover:bg-orange-600'
+              }`}
+              disabled={hasRequested || isJoining}
             >
-              {join ? 'Requested' : 'Join'}
+              {isJoining ? 'Sending...' : hasRequested ? 'Requested' : 'Join'}
             </button>
             <button
               onClick={handleChat}
-              className="flex-1 py-3 px-4 bg-white text-gray-700 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center justify-center cursor-pointer"
+              disabled={!hasJoined && !checkingJoinStatus}
+              className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center ${
+                hasJoined
+                  ? 'bg-green-500 text-white hover:bg-green-600 cursor-pointer'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
             >
               <BsChatDots className="w-5 h-5 mr-2" />
-              Chat
+              {checkingJoinStatus ? 'Checking...' : hasJoined ? 'Chat' : 'Join to Chat'}
             </button>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { chatAPI } from '../../services/chatAPI';
+import { toast } from 'react-toastify';
 
 export default function ChatList({ onSelectChat, selectedChatId }) {
   const [rooms, setRooms] = useState([]);
@@ -8,10 +9,12 @@ export default function ChatList({ onSelectChat, selectedChatId }) {
 useEffect(() => {
   (async () => {
     try {
+      setLoading(true);
       const rooms = await chatAPI.getRooms();
       setRooms(rooms);
     } catch (err) {
-      console.warn('getRooms failed:', err?.response?.status, err?.response?.data);
+      console.error('getRooms failed:', err);
+      toast.error('Failed to load chat rooms');
       setRooms([]);
     } finally {
       setLoading(false);
