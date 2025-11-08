@@ -102,15 +102,6 @@ const hangoutService = {
         }
       });
 
-      const baseURL = import.meta.env.VITE_API_URL.replace(/\/+$/, '');
-
-      const hangouts = response.data.map(h => ({
-        ...h,
-       banner_image_url: h.banner_image_url
-         ? `${baseURL}${h.banner_image_url.startsWith('/') ? '' : '/'}${h.banner_image_url}`
-         : null,
-      }));
-
       // const response = await api.get('/api/hangouts');
 
       // Ensure we always return a consistent structure with proper error handling
