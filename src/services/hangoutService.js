@@ -102,6 +102,15 @@ const hangoutService = {
         }
       });
 
+      const baseURL = import.meta.env.VITE_API_URL.replace(/\/+$/, '');
+
+      const hangouts = response.data.map(h => ({
+        ...h,
+       banner_image_url: h.banner_image_url
+         ? `${baseURL}${h.banner_image_url.startsWith('/') ? '' : '/'}${h.banner_image_url}`
+         : null,
+      }));
+
       // const response = await api.get('/api/hangouts');
 
       // Ensure we always return a consistent structure with proper error handling
@@ -336,12 +345,14 @@ const hangoutService = {
    * @returns {Promise<{hangouts: Array<{id: string, title: string, status: string, start_time: string, created_at: number}>, user_id: string}>} List of hosted hangouts
    */
   getUserHostedHangouts: async (userId) => {
+    console.log("going to fetch hangouts for user:", userId)
     try {
       if (!userId) {
         throw new Error('User ID is required');
       }
 
       const response = await api.get(`/api/hangouts/user/${userId}/hosted`);
+      console.log(response);
       return response;
     } catch (error) {
       console.error('Error fetching hosted hangouts:', error);
