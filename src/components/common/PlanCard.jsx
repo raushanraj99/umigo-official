@@ -1,6 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
+import hangoutService from '../../services/hangoutService';
 
+/**
+ * PlanCard Component
+ *
+ * Displays a hangout/event card with join functionality.
+ * When hangoutId is provided, uses real API to join hangouts.
+ * When onJoin callback is provided, calls it for backward compatibility.
+ *
+ * @param {string} bannerImage - URL for the banner image
+ * @param {string} avatarUrl - URL for the user avatar image
+ * @param {string} name - Name of the hangout host
+ * @param {string} subtitle - Subtitle or activity type
+ * @param {string} start_time - Start time of the hangout
+ * @param {string} location - Location of the hangout
+ * @param {function} onCardClick - Callback when card is clicked
+ * @param {function} onJoin - Callback when join is clicked (optional)
+ * @param {boolean} glow - Whether to show glow effect
+ * @param {boolean} join - Initial join state (for backward compatibility)
+ * @param {string} className - Additional CSS classes
+ * @param {string} hangoutId - Hangout ID for API calls (required for API integration)
+ */
 function PlanCard({
   bannerImage,
   avatarUrl,
@@ -13,26 +34,77 @@ function PlanCard({
   glow = false,
   join,
   className = '',
+  hangoutId, // Added hangoutId prop for API calls
 }) {
-  // const handleJoinClick = (e) => {
-  //   e.stopPropagation(); // Prevent card click from firing
-  //   if (onJoin) {
-  //     onJoin();
-  //   } else {
-  //     // toast.success(`You've joined ${name}'s plan!`, {
-  //     //   position: 'top-center',
-  //     //   autoClose: 3000,
-  //     // });/
-  //     setjoin(e);
-  //   }
-  // };
+  const [isJoining, setIsJoining] = useState(false);
+  const [hasRequested, setHasRequested] = useState(join);
 
-  const handleJoinClick = (e) => {
+  // Sync local state with join prop when it changes externally
+  useEffect(() => {
+    setHasRequested(join);
+  }, [join]);
+
+  const handleJoinClick = async (e) => {
     // Stop event propagation to prevent card click
     e.stopPropagation();
-    // Call onJoin with the event object if it exists
+
+    // If already requested or currently joining, don't do anything
+    if (hasRequested || isJoining) {
+      return;
+    }
+
+    // Call onJoin callback if it exists (for backward compatibility)
     if (onJoin) {
-      onJoin(e);
+      onJoin(e, false); // Pass false to indicate not using API
+      return;
+    }
+
+    // If no hangoutId provided, show error
+    if (!hangoutId) {
+      toast.error('Unable to join hangout - missing hangout information');
+      return;
+    }
+
+    try {
+      setIsJoining(true);
+
+      // Make API call to join hangout using POST /api/hangouts/:id/join
+      const response = await hangoutService.joinHangout(hangoutId);
+
+      // Update local state to show "Requested" status
+      setHasRequested(true);
+
+      // Notify parent component of the change
+      if (onJoin) {
+        onJoin(e, true); // Pass true to indicate successful join
+      }
+
+      toast.success(`Join request sent for ${name}'s hangout!`, {
+        position: 'top-center',
+        autoClose: 3000,
+      });
+
+      console.log('Join request successful:', response);
+    } catch (error) {
+      console.error('Error joining hangout:', error);
+
+      let errorMessage = 'Failed to send join request';
+      if (error.response?.status === 401) {
+        errorMessage = 'Please log in to join hangouts';
+      } else if (error.response?.status === 403) {
+        errorMessage = 'You do not have permission to join this hangout';
+      } else if (error.response?.status === 404) {
+        errorMessage = 'Hangout not found or no longer available';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      toast.error(errorMessage, {
+        position: 'top-center',
+        autoClose: 4000,
+      });
+    } finally {
+      setIsJoining(false);
     }
   };
 
@@ -82,13 +154,14 @@ function PlanCard({
         {/* Join button */}
         <button
           onClick={handleJoinClick}
-          className={`h-fit px-4 py-2 mt-5 rounded-xl whitespace-nowrap z-10 cursor-pointer transition-all duration-300 ${join
-            ? 'bg-white text-[#ff5500] border border-[#ff5500] cursor-not-allowed'
-            : 'bg-[#ff5500] text-white hover:bg-[#e64d00]'
-            }`}
-          disabled={join}
+          className={`h-fit px-4 py-2 mt-5 rounded-xl whitespace-nowrap z-10 cursor-pointer transition-all duration-300 ${
+            hasRequested || isJoining
+              ? 'bg-white text-[#ff5500] border border-[#ff5500] cursor-not-allowed'
+              : 'bg-[#ff5500] text-white hover:bg-[#e64d00]'
+          }`}
+          disabled={hasRequested || isJoining}
         >
-          {join ? "Requested" : "Join"}
+          {isJoining ? "Sending..." : hasRequested ? "Requested" : "Join"}
         </button>
 
         {/* {subtitle && (

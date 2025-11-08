@@ -109,6 +109,11 @@ const formatTime = (date) => {
 const NotificationItem = ({ notification, onDelete }) => {
   const [isRead, setIsRead] = useState(false);
 
+  // Safe access to notification properties
+  const name = notification?.name || notification?.title || 'Unknown';
+  const text = notification?.text || notification?.message || notification?.content || 'No message';
+  const timestamp = notification?.timestamp || notification?.created_at || new Date().toISOString();
+
   return (
     <div
       className={`relative p-4 rounded-xl mb-3 transition-all duration-200 ${isRead ? 'bg-white/50' : 'bg-white shadow-md'
@@ -118,18 +123,18 @@ const NotificationItem = ({ notification, onDelete }) => {
         <div className="flex-1 min-w-0">
           <div className="flex justify-center gap-2">
             <div className="w-12 h-12 rounded-full bg-gradient-to-r from-orange-400 to-amber-500 flex items-center justify-center text-white font-bold">
-              {notification.name.charAt(0)}
+              {name.charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0"
               onClick={() => setIsRead(true)}>
               <div className="flex items-center gap-1">
-                <span className="font-semibold text-gray-900 truncate">{notification.name}</span>
+                <span className="font-semibold text-gray-900 truncate">{name}</span>
                 {/* <span className="text-gray-500">•</span> */}
               </div>
-              <p className="text-gray-600 text-sm text-start mt-1">{notification.text}</p>
+              <p className="text-gray-600 text-sm text-start mt-1">{text}</p>
               <span className="text-[9px] absolute right-0 pt-2 p-1 bottom-1 text-gray-500 flex items-center">
                 <FiClock className="mr-1" size={12} />
-                {formatTime(notification.timestamp)}
+                {formatTime(timestamp)}
               </span>
             </div>
           </div>
@@ -148,7 +153,7 @@ const NotificationItem = ({ notification, onDelete }) => {
           <button
             onClick={(e) => {
               e.stopPropagation();
-              onDelete(notification.id);
+              onDelete(notification.id || notification._id);
             }}
             className="p-1 text-gray-400 hover:text-red-500 transition-colors"
             aria-label="Delete notification"
@@ -166,16 +171,31 @@ const NotificationItem = ({ notification, onDelete }) => {
 };
 
 export default function Notifications() {
+  console.log("Notifications component rendered");
   const [notifications, setNotifications] = useState([]);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
+    console.log("Notifications useEffect triggered");
     const fetchNotifications = async () => {
       try {
+        console.log("Fetching notifications...");
         const res = await notificationService.list();
+        console.log("Notifications API response:", res);
+        console.log("Notifications data structure:", res?.notifications?.[0] || "No notifications");
         setNotifications(res?.notifications || []);
-        console.log(res?.notifications);
+        console.log("Set notifications count:", res?.notifications?.length || 0);
       } catch (error) {
         console.error("Failed to fetch notifications:", error);
+        // For debugging, let's set some sample data if API fails
+        setNotifications([
+          {
+            id: 1,
+            name: 'Test User',
+            text: 'This is a test notification',
+            timestamp: new Date().toISOString()
+          }
+        ]);
       }
     };
 
@@ -185,7 +205,8 @@ export default function Notifications() {
   // Group notifications by date
   const groupedNotifications = (Array.isArray(notifications) ? notifications : []).reduce(
     (groups, notification) => {
-      const date = new Date(notification.timestamp).toDateString();
+      const timestamp = notification?.timestamp || notification?.created_at || new Date().toISOString();
+      const date = new Date(timestamp).toDateString();
       if (!groups[date]) groups[date] = [];
       groups[date].push(notification);
       return groups;
@@ -204,11 +225,12 @@ export default function Notifications() {
   };
 
   const deleteNotification = (id) => {
-    setNotifications(notifications.filter(n => n.id !== id));
+    setNotifications(notifications.filter(n => (n.id || n._id) !== id));
   };
 
   return (
     <div className="max-w-md mx-auto bg-gray-50 min-h-screen">
+
       <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-sm p-4 border-b border-gray-100">
         <div className="flex justify-between items-center">
           <h1 className="text-xl font-bold text-gray-900">Notifications</h1>
@@ -241,7 +263,7 @@ export default function Notifications() {
               <div className="space-y-2">
                 {dateNotifications.map((notification) => (
                   <NotificationItem
-                    key={notification.id}
+                    key={notification.id || notification._id || Math.random()}
                     notification={notification}
                     onDelete={deleteNotification}
                   />

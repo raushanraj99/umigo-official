@@ -12,6 +12,7 @@ export const HangoutProvider = ({ children }) => {
   const updateHangout = hangoutService.updateHangout;
   const deleteHangout = hangoutService.deleteHangout;
   const joinHangout = hangoutService.joinHangout;
+  const hasUserJoinedHangout = hangoutService.hasUserJoinedHangout;
   const getJoinRequests = hangoutService.getJoinRequests;
   const updateJoinRequest = hangoutService.updateJoinRequest;
   const getUserHostedHangouts = hangoutService.getUserHostedHangouts;
@@ -25,6 +26,7 @@ export const HangoutProvider = ({ children }) => {
     updateHangout,
     deleteHangout,
     joinHangout,
+    hasUserJoinedHangout,
     getJoinRequests,
     updateJoinRequest,
     getUserHostedHangouts,

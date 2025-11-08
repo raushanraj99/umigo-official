@@ -3,7 +3,7 @@ import { jwtDecode } from "jwt-decode";
 
 // Create Axios instance with base URL from environment variables
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8080",
+  baseURL: import.meta.env.VITE_API_URL || "",
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",
@@ -80,6 +80,15 @@ api.interceptors.response.use(
         errorMessage = "The requested resource was not found";
       } else if (response.status >= 500) {
         errorMessage = "A server error occurred. Please try again later.";
+      }
+
+      // If the server returns a 500 but the error message suggests auth issues, treat it as auth error
+      if (response.status >= 500 && response.data?.error?.toLowerCase().includes('token')) {
+        errorMessage = "Your session has expired. Please log in again.";
+        removeToken();
+        if (window.location.pathname !== "/login") {
+          window.location.href = "/login";
+        }
       }
     } else if (error.code === "ECONNABORTED") {
       errorMessage =

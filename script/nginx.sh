@@ -19,7 +19,7 @@ echo "📦 Deploying build to $WEBROOT..."
 sudo mkdir -p "$WEBROOT"
 sudo cp -r dist/* "$WEBROOT/"
 sudo chown -R www-data:www-data "$WEBROOT"
-sudo chmod -R 755 /var/www/"$DOMAIN".com
+sudo chmod -R 755 /var/www/"$DOMAIN"
 
 # === 3. Create Nginx config ===
 echo "📝 Setting up Nginx config for $DOMAIN..."

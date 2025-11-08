@@ -16,21 +16,8 @@ import UserProfile from "../pages/userProfile";
 
 const AppRoutes = () => (
   <Routes>
+    {/* Public Routes */}
     <Route path="/" element={<Landing />} />
-    <Route path="/notifications" element={<Notifications />} />
-    {/* <Route path="/glow" element={
-     <ProtectedRoute>
-       <GlowMode />
-   </ProtectedRoute>
-    } /> */}
-    <Route
-      path="/chat"
-      element={
-        <ProtectedRoute>
-          <Chat />
-        </ProtectedRoute>
-      }
-    />{" "}
     <Route path="/about" element={<AboutUs />} />
     <Route path="/features" element={<Features />} />
     <Route path="/events" element={<Events />} />
@@ -38,7 +25,24 @@ const AppRoutes = () => (
     <Route path="/signup" element={<SignUp />} />
     <Route path="/login" element={<Login />} />
     <Route path="/reset-password" element={<ResetPassword />} />
-    {/* <Route path="/profile" element={<Profile />} /> */}
+
+    {/* Protected Routes */}
+    <Route
+      path="/notifications"
+      element={
+        <ProtectedRoute>
+          <Notifications />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/chat"
+      element={
+        <ProtectedRoute>
+          <Chat />
+        </ProtectedRoute>
+      }
+    />
     <Route
       path="/profile"
       element={
@@ -47,17 +51,14 @@ const AppRoutes = () => (
         </ProtectedRoute>
       }
     />
-    {/* <Route path="/profile" element={
-      <ProtectedRoute>
-        <Profile />
-      </ProtectedRoute>
-    } /> */}
-
-    <Route path="/user/:id" element={
-      <ProtectedRoute>
-        <UserProfile />
-      </ProtectedRoute>
-    } />
+    <Route
+      path="/user/:id"
+      element={
+        <ProtectedRoute>
+          <UserProfile />
+        </ProtectedRoute>
+      }
+    />
   </Routes>
 );
 
