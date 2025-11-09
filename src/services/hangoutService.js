@@ -1,4 +1,6 @@
 import api from './authService';
+import { parseWKBPoint, getCityName } from '../utils/locations';
+
 
 /**
  * @typedef {Object} User
@@ -101,6 +103,18 @@ const hangoutService = {
             .join('&');
         }
       });
+
+      const hangouts = await Promise.all(
+        response.hangouts.map(async (item) => {
+          if (item.location) {
+            const { lat, lng } = parseWKBPoint(item.location);
+            const city = await getCityName(lat, lng);
+            item.location = city
+            return item
+          }
+          return item;
+        })
+      );
 
       // const response = await api.get('/api/hangouts');
 
