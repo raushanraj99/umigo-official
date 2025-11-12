@@ -153,7 +153,7 @@ const SignUp = () => {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
               >
-                {showPassword ? <FaEyeSlash /> : <FaEye />}
+                {!showPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
               {errors.password && (
                 <p className="text-red-600 text-sm mt-1">{errors.password}</p>
@@ -177,7 +177,7 @@ const SignUp = () => {
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
               >
-                {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                {!showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
               {errors.confirmPassword && (
                 <p className="text-red-600 text-sm mt-1">{errors.confirmPassword}</p>

@@ -154,14 +154,15 @@ function PlanCard({
         {/* Join button */}
         <button
           onClick={handleJoinClick}
-          className={`h-fit px-4 py-2 mt-5 rounded-xl whitespace-nowrap z-10 cursor-pointer transition-all duration-300 ${
+          className={`h-fit px-4 py-2 mt-5 rounded-xl whitespace-nowrap z-10 cursor-pointer transition-all duration-300 text-[16px] ${
             hasRequested || isJoining
               ? 'bg-white text-[#ff5500] border border-[#ff5500] cursor-not-allowed'
               : 'bg-[#ff5500] text-white hover:bg-[#e64d00]'
           }`}
-          disabled={hasRequested || isJoining}
+          // disabled={hasRequested || isJoining}
         >
-          {isJoining ? "Sending..." : hasRequested ? "Requested" : "Join"}
+          {/* {isJoining ? "Sending..." : hasRequested ? "joined" : "Join to chat"} */}
+          Join to Chat
         </button>
 
         {/* {subtitle && (
