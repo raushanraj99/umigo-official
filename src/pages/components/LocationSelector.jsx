@@ -1,4 +1,4 @@
-import React, { useState,  useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FiMapPin, FiCrosshair } from 'react-icons/fi';
 
 const LocationSelector = ({ initialLocation, onLocationUpdate }) => {
@@ -25,7 +25,7 @@ const LocationSelector = ({ initialLocation, onLocationUpdate }) => {
   // Get current location using browser's geolocation and a free reverse geocoding API
   const getCurrentLocation = () => {
     setIsLoading(true);
-    
+
     if (!navigator.geolocation) {
       setLocation('Geolocation not supported');
       setIsLoading(false);
@@ -39,12 +39,12 @@ const LocationSelector = ({ initialLocation, onLocationUpdate }) => {
           const response = await fetch(
             `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${position.coords.latitude}&longitude=${position.coords.longitude}&localityLanguage=en`
           );
-          
+
           if (!response.ok) throw new Error('Failed to fetch location data');
-          
+
           const data = await response.json();
           const city = data.city || data.locality || 'Current Location';
-          
+
           setLocation(city);
           onLocationUpdate?.(city);
         } catch (error) {
@@ -61,8 +61,8 @@ const LocationSelector = ({ initialLocation, onLocationUpdate }) => {
       (error) => {
         console.error('Geolocation error:', error);
         let errorMessage = 'Enable location access';
-        
-        switch(error.code) {
+
+        switch (error.code) {
           case error.PERMISSION_DENIED:
             errorMessage = 'Location access was denied';
             break;
@@ -73,14 +73,14 @@ const LocationSelector = ({ initialLocation, onLocationUpdate }) => {
             errorMessage = 'Location request timed out';
             break;
         }
-        
+
         setLocation(errorMessage);
         setIsLoading(false);
       },
-      { 
-        enableHighAccuracy: true, 
-        timeout: 10000, 
-        maximumAge: 0 
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
       }
     );
   };
@@ -101,28 +101,28 @@ const LocationSelector = ({ initialLocation, onLocationUpdate }) => {
   // };
 
   return (
-    <div className="relative w-full max-w-md mx-auto">
+    <div className="relative w-full max-w-md mx-auto"
+      onClick={(e) => {
+        e.stopPropagation();
+        getCurrentLocation();
+      }}>
       <div
         className="flex items-center justify-between w-full px-2 py-2 cursor-pointer"
-        // onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+      // onClick={() => setIsDropdownOpen(!isDropdownOpen)}
       >
-            {isLoading ? 'Detecting location...' : location}
+        {isLoading ? 'Detecting location...' : location}
         {/* <div className="flex items-center min-w-0">
           <span className="font-medium text-gray-700 truncate">
           </span>
         </div> */}
         <button
-          onClick={(e) => {
-            e.stopPropagation();
-            getCurrentLocation();
-          }}
           className="p-1 text-gray-500 hover:text-orange-500 rounded-full hover:bg-gray-100"
           title="Use current location"
         >
           <FiCrosshair size={18} />
         </button>
       </div>
-      
+
     </div>
   );
 };

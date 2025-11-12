@@ -20,7 +20,7 @@ const navItems = [
   { to: '/', label: 'Home', icon: <GoHome /> },
   { to: '/notifications', label: 'Alerts', icon: <IoNotificationsOutline /> },
   { to: null, label: 'Add', icon: <IoMdAddCircleOutline />, action: 'create-post' },
-  { to: '/chat', label: 'Chat', icon: <IoChatboxEllipsesOutline /> },
+  // { to: '/chat', label: 'Chat', icon: <IoChatboxEllipsesOutline /> },
   { to: '/profile', label: 'Me', icon: <FaRegUser /> },
 ];
 

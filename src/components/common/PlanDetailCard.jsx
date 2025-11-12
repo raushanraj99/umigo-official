@@ -211,8 +211,8 @@ function PlanDetailCard({ plan, hangoutId, onClose, onApproach, onChat, join, on
           </div>
 
           {/* Action Buttons */}
-          <div className="flex space-x-4">
-            <button
+          <div className="flex justify-center w-full space-x-4">
+            {/* <button
               onClick={handleJoin}
               className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors cursor-pointer ${
                 hasRequested || isJoining
@@ -222,11 +222,11 @@ function PlanDetailCard({ plan, hangoutId, onClose, onApproach, onChat, join, on
               disabled={hasRequested || isJoining}
             >
               {isJoining ? 'Sending...' : hasRequested ? 'Requested' : 'Join'}
-            </button>
+            </button> */}
             <button
               onClick={handleChat}
               disabled={!hasJoined && !checkingJoinStatus}
-              className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center ${
+              className={`w-fit flex-1 py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center ${
                 hasJoined
                   ? 'bg-green-500 text-white hover:bg-green-600 cursor-pointer'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
