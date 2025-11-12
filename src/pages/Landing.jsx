@@ -298,27 +298,14 @@ function Landing() {
                         hangoutId={p.id} // Add hangoutId for API integration
                         glow={glowEnabled}
                         bannerImage={p.bannerImage}
-                        avatarUrl={p.host.image_url}
+                        avatarUrl={p.host.image_url || p.avatarUrl}
                         name={p.host?.name || p.name}
                         subtitle={p.subtitle}
                         start_time={p.start_time}
                         location={p.location}
                         join={!!joinedPlans[p.id]} // Use p.id instead of p.name for consistency
-                        onJoin={(e, success) => {
-                          if (success) {
-                            // Successfully joined via API
-                            setJoinedPlans(prev => ({
-                              ...prev,
-                              [p.id]: true
-                            }));
-                            toast.success('Join request sent!');
-                          } else {
-                            // Using old callback method
-                            handleJoin(p.id);
-                          }
-                        }}
+                        onJoin={() => onChat(selectedPlan?.id)}
                         onCardClick={() => setSelectedPlan(p)}
-                      
                       />
                     </div>
                   ))
@@ -332,7 +319,7 @@ function Landing() {
                     >
                       <SpotlightCard
                         glow={glowEnabled}
-                        avatarUrl={user.image_url}
+                        avatarUrl={user.image_url || user.avatarUrl}
                         name={user.name}
                         time={user.time}
                         location={user.location}
