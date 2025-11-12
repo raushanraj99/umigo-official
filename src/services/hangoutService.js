@@ -188,8 +188,7 @@ const hangoutService = {
       }
 
       const response = await api.get(`/api/hangouts/${hangoutId}`);
-      console.log("hangout response data:", response);
-      return response.data;
+      return response;
     } catch (error) {
       console.error('Error fetching hangout details:', error);
       throw error.response?.data || error;

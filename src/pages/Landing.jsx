@@ -215,6 +215,7 @@ function Landing() {
       const hangoutDetails = await getHangoutDetails(id);
 
       if (hangoutDetails && hangoutDetails.whatsapp_url) {
+        console.log("Opening the url")
         // Open WhatsApp URL in new tab
         window.open(hangoutDetails.whatsapp_url, '_blank', 'noopener,noreferrer');
         toast.success("Opening WhatsApp group chat!");
@@ -304,7 +305,7 @@ function Landing() {
                         start_time={p.start_time}
                         location={p.location}
                         join={!!joinedPlans[p.id]} // Use p.id instead of p.name for consistency
-                        onJoin={() => onChat(selectedPlan?.id)}
+                        onJoin={() => onChat(p?.id)}
                         onCardClick={() => setSelectedPlan(p)}
                       />
                     </div>
