@@ -378,7 +378,7 @@ const Profile = () => {
         </div>
 
         {/* Plan Requests Section */}
-        <div className="mt-10 px-4 sm:px-6 max-w-6xl mx-auto">
+        {/* <div className="mt-10 px-4 sm:px-6 max-w-6xl mx-auto">
           <div className="w-full mb-6">
             <div className="inline-flex items-center gap-3 pb-2 border-b-2 border-stone-800">
               <FaCalendar className="text-2xl sm:text-3xl text-stone-800" />
@@ -495,10 +495,10 @@ const Profile = () => {
                     )}
                   </div>
                 </div>
-              ))
-            )}
-          </div>
-        </div>
+              )) */}
+            {/* )} */}
+          {/* </div> */}
+        {/* </div> */}
       </div>
     </>
   );
