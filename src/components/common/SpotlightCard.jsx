@@ -11,6 +11,11 @@ function SpotlightCard({
   approach = false,
   glow = false
 }) {
+  let avatar = avatarUrl.Valid ? avatarUrl.String : "";
+  if (avatar === "") {
+    avatar = "/public/profile.jpg";
+  }
+
 
   const handleApproachClick = (e) => {
     e.stopPropagation();
@@ -47,7 +52,7 @@ function SpotlightCard({
     >
       <div className="flex items-center gap-4">
         <img
-          src={avatarUrl || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=400&auto=format&fit=crop'}
+          src={avatar}
           alt={name}
           className="h-24 w-24 rounded-full object-cover"
         />
