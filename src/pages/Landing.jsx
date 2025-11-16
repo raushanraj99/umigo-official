@@ -348,7 +348,7 @@ function Landing() {
                     >
                       <SpotlightCard
                         glow={glowEnabled}
-                        avatarUrl={user.image_url || user.avatarUrl || "/profile.jpg"}
+                        imageUrl={user.image_url || "/profile.jpg"}
                         name={user.name}
                         time={user.time}
                         location={user.location}

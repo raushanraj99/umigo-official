@@ -2,7 +2,7 @@ import React from 'react';
 // import { toast } from 'react-toastify';
 
 function SpotlightCard({
-  avatarUrl,
+  imageUrl,
   name,
   time,
   location,
@@ -11,7 +11,7 @@ function SpotlightCard({
   approach = false,
   glow = false
 }) {
-  let avatar = avatarUrl.Valid ? avatarUrl.String : "";
+  let avatar = imageUrl.Valid ? imageUrl.String : "";
   if (avatar === "") {
     avatar = "/public/profile.jpg";
   }
