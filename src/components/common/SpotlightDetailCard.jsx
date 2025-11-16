@@ -47,7 +47,7 @@ function SpotlightDetailCard({ user, onClose, onApproach, onChat, approach = fal
           <div className="relative mx-auto w-65 h-65 mb-4">
             <NavLink to={`/user/${user.user_id}`}>
               <img
-                src={user.avatarUrl || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=400&auto=format&fit=crop'}
+                src={user.avatarUrl || '/profile.jpg'}
                 alt={user.name}
                 className="w-full h-full rounded-full object-cover border-4 border-white shadow-md"
               />
