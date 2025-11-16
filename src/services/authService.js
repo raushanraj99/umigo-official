@@ -366,7 +366,7 @@ export const userAPI = {
   getGlowUsers: async () => {
     try {
       const response = await api.get("/api/user/glow");
-
+      
       return response.users || [];
     } catch (error) {
       throw {

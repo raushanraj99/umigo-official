@@ -14,6 +14,13 @@ function SpotlightDetailCard({ user, onClose, onApproach, onChat, approach = fal
     }
   };
 
+  console.log(user.image_url)
+
+  let avatar = user.image_url.Valid ? user.image_url.String : "";
+  if (avatar === "") {
+    avatar = "/public/profile.jpg";
+  }
+
   const handleChat = (e) => {
     e.stopPropagation();
     if (onChat) onChat();
@@ -47,7 +54,7 @@ function SpotlightDetailCard({ user, onClose, onApproach, onChat, approach = fal
           <div className="relative mx-auto w-65 h-65 mb-4">
             <NavLink to={`/user/${user.user_id}`}>
               <img
-                src={user.avatarUrl || '/profile.jpg'}
+                src={avatar || '/profile.jpg'}
                 alt={user.name}
                 className="w-full h-full rounded-full object-cover border-4 border-white shadow-md"
               />

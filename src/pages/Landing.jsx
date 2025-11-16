@@ -35,31 +35,29 @@ function Landing() {
   // console.log(myLocation);
 
   //Fetch my location from https://ipapi.co/json/
-  useEffect(() => {
-    const fetchLocation = async () => {
-      try {
-        const res = await fetch("https://ipapi.co/json/");
-        const data = await res.json();
+  const fetchLocation = async () => {
+    try {
+      const res = await fetch("https://ipapi.co/json/");
+      const data = await res.json();
 
-        setMyLocation({
-          lat: data.latitude,
-          lon: data.longitude,
-          city: data.city,
-          region: data.region,
-          country: data.country_name
-        });
+      setMyLocation({
+        lat: data.latitude,
+        lon: data.longitude,
+        city: data.city,
+        region: data.region,
+        country: data.country_name
+      });
 
-        // console.log("My location:", data);
-        if (data) {
-          setSamplePlans(samplePlans.filter(e => e.location === myLocation.city));
-        }
-      } catch (err) {
-        console.error("Error fetching IP location:", err);
+      // console.log("My location:", data);
+      if (data) {
+        setSamplePlans(samplePlans.filter(e => e.location === myLocation.city));
       }
-    };
+    } catch (err) {
+      console.error("Error fetching IP location:", err);
+    }
+  };
 
-    fetchLocation();
-  }, []);
+  fetchLocation()
 
   // Handle joining a plan (backward compatibility)
   const handleJoin = useCallback((planId) => {
@@ -348,7 +346,7 @@ function Landing() {
                     >
                       <SpotlightCard
                         glow={glowEnabled}
-                        avatarUrl={user.image_url || user.avatarUrl || "/profile.jpg"}
+                        imageUrl={user.image_url || "/profile.jpg"}
                         name={user.name}
                         time={user.time}
                         location={user.location}
