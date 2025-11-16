@@ -11,7 +11,7 @@ import SpotlightDetailCard from '../components/common/SpotlightDetailCard';
 import { toast } from 'react-toastify';
 import Footer from '../components/layout/Footer';
 import InfiniteScroll from 'react-infinite-scroll-component';
-import {useHangout} from '../context/HangoutContext';
+import { useHangout } from '../context/HangoutContext';
 
 function Landing() {
   const ITEMS_PER_PAGE = 9;
@@ -31,7 +31,36 @@ function Landing() {
   const [joinedPlans, setJoinedPlans] = useState({});
   const [approachPeople, setApproachPeople] = useState({});
   const [sampleUsers, setSampleUsers] = useState([]);
-  
+  const [myLocation, setMyLocation] = useState(null);
+  // console.log(myLocation);
+
+  //Fetch my location from https://ipapi.co/json/
+  useEffect(() => {
+    const fetchLocation = async () => {
+      try {
+        const res = await fetch("https://ipapi.co/json/");
+        const data = await res.json();
+
+        setMyLocation({
+          lat: data.latitude,
+          lon: data.longitude,
+          city: data.city,
+          region: data.region,
+          country: data.country_name
+        });
+
+        // console.log("My location:", data);
+        if (data) {
+          setSamplePlans(samplePlans.filter(e => e.location === myLocation.city));
+        }
+      } catch (err) {
+        console.error("Error fetching IP location:", err);
+      }
+    };
+
+    fetchLocation();
+  }, []);
+
   // Handle joining a plan (backward compatibility)
   const handleJoin = useCallback((planId) => {
     setJoinedPlans(prev => ({
@@ -40,7 +69,7 @@ function Landing() {
     }));
     toast.success('Join request sent!');
   }, []);
-  
+
   // Set initial tab
   useEffect(() => {
     const fetchHangouts = async () => {
@@ -67,7 +96,7 @@ function Landing() {
         }
 
         console.log("Response for hangouts on landing.jsx:", response)
-          
+
         // If we have hangouts data, format it
         if (response.hangouts && Array.isArray(response.hangouts)) {
           console.log('Fetched hangouts:', response.hangouts.length, 'hangouts');
@@ -80,8 +109,8 @@ function Landing() {
               new Date(plan.start_time || plan.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) :
               'Time not set',
             location: plan.location || plan.address || 'Location not specified',
-            bannerImage: plan.banner_image_url || plan.bannerImage || 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1200&auto=format&fit=crop',
-            avatarUrl: plan.creator?.profileImage || plan.host?.profileImage || plan.avatarUrl || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200&auto=format&fit=crop'
+            bannerImage: plan.banner_image_url || plan.bannerImage,
+            avatarUrl: plan.creator?.profileImage || plan.host?.profileImage || plan.avatarUrl || '/profile.jpg'
           }));
 
           console.log('Formatted plans:', formattedPlans.length, 'plans');
@@ -100,13 +129,13 @@ function Landing() {
         setIsLoading(false);
       }
     };
-    
+
     // Only fetch if we don't have data yet
     if (samplePlans.length === 0) {
       fetchHangouts();
     }
   }, [getHangouts, isAuthenticated]);
-  
+
 
   // Handle glow mode changes and update user data accordingly
   useEffect(() => {
@@ -131,7 +160,7 @@ function Landing() {
     };
   }, [setGlowMode, activeTab, glowUsers]);
 
- 
+
   useEffect(() => {
     if (glowEnabled) {
       setSampleUsers(Array.isArray(glowUsers) ? glowUsers : []);
@@ -179,7 +208,7 @@ function Landing() {
     () => filteredSpotlight.slice(0, itemsToShow),
     [filteredSpotlight, itemsToShow]
   );
-  
+
   // Load more items
   const loadMore = useCallback(() => {
     setItemsToShow(prev => prev + ITEMS_PER_PAGE);
@@ -237,10 +266,9 @@ function Landing() {
       <main className="flex-1 px-4 py-6 pb-20 md:pb-6">
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Search Bar - Fixed width container with smooth transition */}
-          <div 
-            className={`w-full transition-all duration-300 ease-in-out overflow-hidden ${
-              showSearch ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'
-            }`}
+          <div
+            className={`w-full transition-all duration-300 ease-in-out overflow-hidden ${showSearch ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'
+              }`}
           >
             <div className="py-2">
               <SearchBar value={query} onChange={setQuery} />
@@ -293,13 +321,13 @@ function Landing() {
                         : 'opacity-100 translate-y-0 scale-100'
                         }`}
                     >
-                    
+
                       <PlanCard
                         // key={p.id}
                         hangoutId={p.id} // Add hangoutId for API integration
                         glow={glowEnabled}
                         bannerImage={p.bannerImage}
-                        avatarUrl={p.host.image_url || p.avatarUrl}
+                        avatarUrl={p.host.image_url || p.avatarUrl || "/profile.jpg"}
                         name={p.host?.name || p.name}
                         subtitle={p.subtitle}
                         start_time={p.start_time}
@@ -320,7 +348,7 @@ function Landing() {
                     >
                       <SpotlightCard
                         glow={glowEnabled}
-                        avatarUrl={user.image_url || user.avatarUrl}
+                        avatarUrl={user.image_url || user.avatarUrl || "/profile.jpg"}
                         name={user.name}
                         time={user.time}
                         location={user.location}
