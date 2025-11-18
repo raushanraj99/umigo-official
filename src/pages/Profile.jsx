@@ -317,7 +317,7 @@ const Profile = () => {
             <div className="rounded-full border overflow-hidden">
               {currentUser?.image_url ? (
                 <img
-                  src={currentUser.image_url}
+                  src={`http://localhost:8080${currentUser.image_url}`}
                   alt={currentUser?.name || "User"}
                   className="w-[150px] h-[150px] md:h-[300px] md:w-[300px] rounded-full object-cover"
                   onError={(e) => {

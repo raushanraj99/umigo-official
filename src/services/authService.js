@@ -311,14 +311,36 @@ export const userAPI = {
       const response = await api.put("/api/user/update", {
         name: userData.name,
         bio: userData.bio,
-        image_url: userData.image_url,
-        phone_no: userData.phone,
+        phone_no: userData.phone_no,
       });
-      return response.user || response.data?.user || response;
+
+      return response.data?.user || response.data;
     } catch (error) {
       throw {
         status: error.response?.status || 500,
-        message: error.response?.data?.error || "Failed to update profile",
+        message:
+          error.response?.data?.error || "Failed to update profile",
+        originalError: error,
+      };
+    }
+  },
+
+  uploadPicture: async (imageFile) => {
+    try {
+      const formData = new FormData();
+      formData.append("image", imageFile);
+
+      const response = await api.post("/api/user/upload", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      return response.data; // contains { image_url }
+    } catch (error) {
+      throw {
+        status: error.response?.status || 500,
+        message:
+          error.response?.data?.error ||
+          "Failed to upload profile picture",
         originalError: error,
       };
     }
