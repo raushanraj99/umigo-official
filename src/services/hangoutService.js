@@ -116,11 +116,9 @@ const hangoutService = {
         })
       );
 
-      // const response = await api.get('/api/hangouts');
-
       // Ensure we always return a consistent structure with proper error handling
       if (response && response) {
-        return response;
+        return hangouts;
       }
 
       return { hangouts: [], total: 0, limit: safeFilters.limit, offset: safeFilters.offset || 0, has_more: false };
@@ -188,7 +186,20 @@ const hangoutService = {
       }
 
       const response = await api.get(`/api/hangouts/${hangoutId}`);
-      return response;
+      
+      const hangouts = await Promise.all(
+        response.hangouts.map(async (item) => {
+          if (item.location) {
+            const { lat, lng } = parseWKBPoint(item.location);
+            const city = await getCityName(lat, lng);
+            item.location = city
+            return item
+          }
+          return item;
+        })
+      );
+
+      return hangouts;
     } catch (error) {
       console.error('Error fetching hangout details:', error);
       throw error.response?.data || error;
