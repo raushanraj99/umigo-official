@@ -334,7 +334,7 @@ export const userAPI = {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      return response.data; // contains { image_url }
+      return response; // contains { image_url }
     } catch (error) {
       throw {
         status: error.response?.status || 500,

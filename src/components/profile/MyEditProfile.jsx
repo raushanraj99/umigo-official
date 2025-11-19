@@ -5,228 +5,260 @@ import { userAPI } from "../../services/authService";
 import { IoArrowBack } from "react-icons/io5";
 
 const MyEditProfile = ({ onClose, onUpdate, currentUser }) => {
-  const { user } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
-  const [imageFile, setImageFile] = useState(null);
+	const { user } = useAuth();
+	const [isLoading, setIsLoading] = useState(false);
+	const [imageFile, setImageFile] = useState(null);
 
-  const [formData, setFormData] = useState({
-    name: "",
-    bio: "",
-    phone_no: "",
-  });
+	const [formData, setFormData] = useState({
+		name: "",
+		bio: "",
+		phone_no: "",
+	});
 
-  const [previewImage, setPreviewImage] = useState("");
+	const [previewImage, setPreviewImage] = useState("");
 
-  useEffect(() => {
-    const u = currentUser || user;
-    if (u) {
-      setFormData({
-        name: u.name || "",
-        bio: u.bio || "",
-        phone_no: u.phone_no || "",
-      });
+	// Load initial user data
+	useEffect(() => {
+		const u = currentUser || user;
+		if (u) {
+			setFormData({
+				name: u.name || "",
+				bio: u.bio || "",
+				phone_no: u.phone_no || "",
+			});
+			setPreviewImage(u.image_url || "");
+		}
+	}, [currentUser, user]);
 
-      setPreviewImage(u.image_url || "");
-    }
-  }, [currentUser, user]);
+	const handleChange = (e) => {
+		const { name, value } = e.target;
+		setFormData((prev) => ({ ...prev, [name]: value }));
+	};
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+	// Upload Image Preview
+	const handleImageUpload = async (e) => {
+		const file = e.target.files[0];
+		if (!file) return;
 
-  // --------------------
-  // Image Upload
-  // --------------------
-  const handleImageUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+		if (!file.type.startsWith("image/")) {
+			toast.error("Invalid image type");
+			return;
+		}
 
-    if (!file.type.startsWith("image/")) {
-      toast.error("Invalid image type");
-      return;
-    }
+		if (file.size > 5 * 1024 * 1024) {
+			toast.error("Max size 5MB");
+			return;
+		}
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Max size 5MB");
-      return;
-    }
+		setImageFile(file);
 
-    setImageFile(file);
+		const reader = new FileReader();
+		reader.onloadend = () => setPreviewImage(reader.result);
+		reader.readAsDataURL(file);
+	};
 
-    const reader = new FileReader();
-    reader.onloadend = () => setPreviewImage(reader.result);
-    reader.readAsDataURL(file);
-  };
+	// Submit Update
+	const handleSubmit = async (e) => {
+		e.preventDefault();
 
-  // --------------------
-  // Submit
-  // --------------------
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+		if (!formData.name.trim()) {
+			toast.error("Name is required");
+			return;
+		}
 
-    if (!formData.name.trim()) {
-      toast.error("Name required");
-      return;
-    }
+		setIsLoading(true);
 
-    setIsLoading(true);
+		try {
+			const previous = currentUser || user;
+			let uploadedImageUrl = null;
+			let profileUpdated = false;
 
-    try {
-      let uploadedImageUrl = null;
+			// 1. IMAGE UPLOAD IF CHANGED
+			if (imageFile) {
+				const imgRes = await userAPI.uploadPicture(imageFile);
 
-      // Image upload FIRST (optional)
-      if (imageFile) {
-        const imgRes = await userAPI.uploadPicture(imageFile);
-        uploadedImageUrl =
-          imgRes.image_url || imgRes.url || imgRes.data?.url;
+				uploadedImageUrl =
+					imgRes?.image_url ||
+					imgRes?.url ||
+					imgRes?.data?.url ||
+					null;
 
-        if (!uploadedImageUrl) {
-          throw new Error("Image upload failed");
-        }
-      }
+				if (!uploadedImageUrl) {
+					throw new Error("Image upload failed (no URL returned)");
+				}
 
-      // Update user (NO IMAGE URL SENT)
-      const updatedUser = await userAPI.updateProfile(formData);
+				profileUpdated = true; // image update is considered a profile update
+			}
 
-      // Merge uploaded image into local returned user (your server may already handle this)
-      if (uploadedImageUrl) {
-        updatedUser.image_url = uploadedImageUrl;
-      }
+			// 2. CHECK IF TEXT FIELDS CHANGED
+			const textChanged =
+				formData.name !== previous?.name ||
+				formData.bio !== previous?.bio ||
+				formData.phone_no !== previous?.phone_no;
 
-      toast.success("Profile updated!");
+			let updatedUser = previous;
 
-      if (onUpdate) onUpdate(updatedUser);
+			// 3. UPDATE PROFILE ONLY IF TEXT CHANGED
+			if (textChanged) {
+				const res = await userAPI.updateProfile(formData);
+				updatedUser = res?.user || res?.data?.user || res;
+				profileUpdated = true;
+			}
 
-      onClose();
-    } catch (err) {
-      const message =
-        err.message ||
-        err.response?.data?.error ||
-        "Failed to update profile";
-      toast.error(message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+			// 4. If NOTHING changed → skip everything
+			if (!profileUpdated) {
+				toast.info("No changes to update");
+				onClose();
+				return;
+			}
 
-  // UI HANDLERS
-  const handleBackdropClick = (e) => {
-    if (e.target === e.currentTarget) onClose();
-  };
+			// 5. Merge final user object safely
+			const finalUser = {
+				...updatedUser,
+				image_url:
+					uploadedImageUrl ||
+					updatedUser?.image_url ||
+					previous?.image_url ||
+					"",
+			};
 
-  const handleKeyDown = (e) => {
-    if (e.key === "Escape") onClose();
-  };
+			// Send back to parent
+			if (onUpdate) onUpdate(finalUser);
 
-  useEffect(() => {
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, []);
+			toast.success("Profile updated!");
+			onClose();
+		} catch (err) {
+			console.log("PROFILE UPDATE ERROR:", err);
 
-  const nameFirstLetter =
-    formData.name?.charAt(0)?.toUpperCase() || "U";
+			const message =
+				err?.message ||
+				err?.response?.data?.error ||
+				"Failed to update profile";
 
-  return (
-    <div
-      className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
-      onClick={handleBackdropClick}
-    >
-      <div className="bg-white rounded-xl w-full max-w-md p-6">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <button
-            onClick={onClose}
-            className="p-1 text-xl hover:bg-orange-500 hover:text-white rounded-full"
-          >
-            <IoArrowBack />
-          </button>
-          <h2 className="font-bold text-lg">Edit Profile</h2>
-          <div className="w-8"></div>
-        </div>
+			toast.error(`Here is the issue: ${message}`);
+		} finally {
+			setIsLoading(false);
+		}
+	};
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Avatar */}
-          <div className="flex justify-center mb-4">
-            <div className="relative">
-              {previewImage ? (
-                <img
-                  src={previewImage}
-                  className="w-24 h-24 rounded-full object-cover border"
-                />
-              ) : (
-                <div className="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center text-2xl">
-                  {nameFirstLetter}
-                </div>
-              )}
+	const handleBackdropClick = (e) => {
+		if (e.target === e.currentTarget) onClose();
+	};
 
-              <button
-                type="button"
-                className="absolute -bottom-2 -right-2 bg-orange-500 p-2 rounded-full text-white"
-                onClick={() => document.getElementById("uploadInput").click()}
-              >
-                📷
-              </button>
+	const handleKeyDown = (e) => {
+		if (e.key === "Escape") onClose();
+	};
 
-              <input
-                id="uploadInput"
-                type="file"
-                className="hidden"
-                accept="image/*"
-                onChange={handleImageUpload}
-              />
-            </div>
-          </div>
+	useEffect(() => {
+		document.addEventListener("keydown", handleKeyDown);
+		return () => document.removeEventListener("keydown", handleKeyDown);
+	}, []);
 
-          {/* Name */}
-          <input
-            type="text"
-            name="name"
-            className="w-full border p-3 rounded-lg"
-            value={formData.name}
-            onChange={handleChange}
-            required
-          />
+	const nameFirstLetter = formData.name?.charAt(0)?.toUpperCase() || "U";
 
-          {/* Bio */}
-          <textarea
-            name="bio"
-            rows="3"
-            className="w-full border p-3 rounded-lg"
-            value={formData.bio}
-            onChange={handleChange}
-          ></textarea>
+	return (
+		<div
+			className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+			onClick={handleBackdropClick}
+		>
+			<div className="bg-white rounded-xl w-full max-w-md p-6">
+				<div className="flex items-center justify-between mb-6">
+					<button
+						onClick={onClose}
+						className="p-1 text-xl hover:bg-orange-500 hover:text-white rounded-full"
+					>
+						<IoArrowBack />
+					</button>
+					<h2 className="font-bold text-lg">Edit Profile</h2>
+					<div className="w-8"></div>
+				</div>
 
-          {/* Phone */}
-          <input
-            type="tel"
-            name="phone_no"
-            className="w-full border p-3 rounded-lg"
-            value={formData.phone_no}
-            onChange={handleChange}
-          />
+				<form onSubmit={handleSubmit} className="space-y-4">
+					{/* Avatar */}
+					<div className="flex justify-center mb-4">
+						<div className="relative">
+							{previewImage ? (
+								<img
+									src={previewImage}
+									className="w-24 h-24 rounded-full object-cover border"
+								/>
+							) : (
+								<div className="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center text-2xl">
+									{nameFirstLetter}
+								</div>
+							)}
 
-          <div className="flex justify-end gap-3 mt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-5 py-2 bg-gray-200 rounded-lg"
-            >
-              Cancel
-            </button>
+							<button
+								type="button"
+								className="absolute -bottom-2 -right-2 bg-orange-500 p-2 rounded-full text-white"
+								onClick={() =>
+									document
+										.getElementById("uploadInput")
+										.click()
+								}
+							>
+								📷
+							</button>
 
-            <button
-              type="submit"
-              className="px-5 py-2 bg-orange-500 text-white rounded-lg"
-              disabled={isLoading}
-            >
-              {isLoading ? "Saving..." : "Save Changes"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
+							<input
+								id="uploadInput"
+								type="file"
+								className="hidden"
+								accept="image/*"
+								onChange={handleImageUpload}
+							/>
+						</div>
+					</div>
+
+					{/* Name */}
+					<input
+						type="text"
+						name="name"
+						className="w-full border p-3 rounded-lg"
+						value={formData.name}
+						onChange={handleChange}
+						required
+					/>
+
+					{/* Bio */}
+					<textarea
+						name="bio"
+						rows="3"
+						className="w-full border p-3 rounded-lg"
+						value={formData.bio}
+						onChange={handleChange}
+					/>
+
+					{/* Phone */}
+					<input
+						type="tel"
+						name="phone_no"
+						className="w-full border p-3 rounded-lg"
+						value={formData.phone_no}
+						onChange={handleChange}
+					/>
+
+					<div className="flex justify-end gap-3 mt-4">
+						<button
+							type="button"
+							onClick={onClose}
+							className="px-5 py-2 bg-gray-200 rounded-lg"
+						>
+							Cancel
+						</button>
+
+						<button
+							type="submit"
+							className="px-5 py-2 bg-orange-500 text-white rounded-lg"
+							disabled={isLoading}
+						>
+							{isLoading ? "Saving..." : "Save Changes"}
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	);
 };
 
 export default MyEditProfile;
