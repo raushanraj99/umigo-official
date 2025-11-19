@@ -50,11 +50,11 @@ function Landing() {
 			});
 
 			// console.log("My location:", data);
-			if (data) {
-				setSamplePlans(
-					samplePlans.filter((e) => e.location === myLocation.city)
-				);
-			}
+			// if (data) {
+			// 	setSamplePlans(
+			// 		samplePlans.filter((e) => e.location === myLocation.city)
+			// 	);
+			// }
 		} catch (err) {
 			console.error("Error fetching IP location:", err);
 		}
